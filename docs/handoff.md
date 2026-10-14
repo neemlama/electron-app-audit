@@ -1,115 +1,64 @@
-# Handoff — two things need your GitHub account
+# Submission status
 
-Both are blocked on authentication, not on anything in this repo. Nothing is lost;
-the commit is local and complete.
-
-## What is ready
+## Upstream contribution: SENT
 
 | | |
 | --- | --- |
+| PR | https://github.com/gitify-app/gitify/pull/3423 |
+| Title | `fix(build): flip Electron fuses in packaged builds` |
+| Author | `neemlama` |
+| Files | `scripts/afterPack.js`, `package.json` |
+| Diff | +70 / -0 |
+| Branch | `neemlama/gitify` @ `security/flip-electron-fuses` |
+
+### Why the title is `fix(build):` and not `security:`
+
+Gitify uses [release-please](https://github.com/googleapis/release-please) and requires
+Conventional Commits on PR titles. Per their `CONTRIBUTING.md`: *"The commit type decides
+the version bump and the changelog section it lands in."*
+
+`security:` is not a valid Conventional Commit type, so it would have failed their
+"Validate PR title" workflow and blocked release automation. `fix:` is correct here
+because the change alters shipped behaviour and should land in a patch release.
+
+### Awaiting
+
+Maintainer review. If they ask for changes, the branch is on the fork and can be
+amended directly.
+
+## This repository
+
+| | |
+| --- | --- |
+| Remote | https://github.com/neemlama/electron-app-audit |
+| Visibility | **PRIVATE** |
 | Branch | `main` |
-| Commit | `1682762` |
-| Files | 17, 119 KB (the 1.5 GB of `targets/` is gitignored) |
-| Remote | none configured yet |
-| Self-test | 40/40 |
+| Commit | `4999989` |
+| Author identity | `neemlama@users.noreply.github.com` |
 
-## Blocker 1 — GitHub auth is invalid
+### Before making it public
 
-```
-$ gh auth status
-  X Failed to log in to github.com account neemlama (keyring)
-  - The token in keyring is invalid.
-```
+`reports/gitify-v7.9.0-asis.md` documents three unrepaired security findings in
+Gitify v7.9.0. Those findings are not vulnerabilities — they are Electron framework
+defaults, publicly observable by anyone who downloads the app — but publishing them
+before the maintainer has responded reads as a drive-by disclosure regardless of
+intent.
 
-Fix:
+Wait for a response on PR #3423 first. Their reply is worth more to a portfolio than
+the report itself, and it removes the disclosure question entirely.
 
-```bash
-gh auth login -h github.com
-```
+## The patch file
 
-Choose: GitHub.com -> HTTPS -> Login with a web browser.
-
-## Blocker 2 — the repo does not exist yet
-
-`https://api.github.com/repos/neemlama/electron-app-audit` returns **404**. The user
-`neemlama` exists (17 public repos), so this repo has simply not been created.
-
-Create it, then push:
-
-```bash
-cd "C:/Users/wecal/Documents/Codes/electron-app-audit"
-gh repo create electron-app-audit --public --source=. --remote=origin --push
-```
-
-If you would rather create it in the browser first, leave it **empty** (no README, no
-.gitignore) or this push will be rejected.
-
----
-
-# Then: the Gitify PR
-
-Your sequencing was right — PR first, publish after. Sending the findings to the
-maintainer before the repo goes public is the correct order.
-
-## 1. Fork
-
-```bash
-gh repo fork gitify-app/gitify --clone=false
-```
-
-## 2. Push the branch
-
-The work is in a shallow clone at
-`C:\Users\wecal\AppData\Local\Temp\opencode\gitify-pr` on branch
-`security/flip-electron-fuses`, commit `473a0e7`.
-
-**Temp is not a safe home for this.** Copy it somewhere permanent first, or apply the
-committed patch to a fresh clone. The patch is already safe — it is tracked at
-`docs/gitify-fuse-fix.patch`.
-
-Cleanest route from a fresh clone:
+`docs/gitify-fuse-fix.patch` is a `git format-patch` output and applies to a clean
+checkout of `gitify-app/gitify`:
 
 ```bash
 git clone https://github.com/neemlama/gitify.git
 cd gitify
 git checkout -b security/flip-electron-fuses
-git apply --3way "/c/Users/wecal/Documents/Codes/electron-app-audit/docs/gitify-fuse-fix.patch"
-git add -A
-git commit -m "security: flip Electron fuses in packaged builds"
-git push -u origin security/flip-electron-fuses
+git apply --3way /path/to/gitify-fuse-fix.patch
 ```
 
-## 3. Open the PR
-
-```bash
-gh pr create --repo gitify-app/gitify \
-  --head neemlama:security/flip-electron-fuses \
-  --title "security: flip Electron fuses in packaged builds" \
-  --body-file "/c/Users/wecal/Documents/Codes/electron-app-audit/docs/outreach-gitify.md"
-```
-
-The body in `outreach-gitify.md` is a *guide to sending*, not the PR body. The actual
-PR body you want is the markdown block inside the "Step 1 — the GitHub issue" section.
-Copy that, and trim the "Happy to send a PR" section since you will be attaching the PR
-itself.
-
-## 4. Then post the issue
-
-The PR and the issue are the same conversation. Open the issue **after** the PR so the
-PR is the first thing they see, then link them.
-
-## 5. Then publish this repo
-
-Once Gitify has responded, publish. Their reply — especially if they merge — is worth
-more to you than the report itself.
-
----
-
-## One thing to decide
-
-Your global git identity is `Neem Lama <kazuhalama@gmail.com>`, and that address is
-now in commit `1682762`'s metadata. On a public repo GitHub links that email to your
-account.
-
-If you would rather it stay private, tell me and I will rewrite the commit using the
-`neemj...@users.noreply.github.com` address instead. It has to be done before the push.
+An earlier version of this file was written through PowerShell redirection and ended up
+UTF-16 encoded, which `git apply` rejected with "No valid patches in input". It has been
+regenerated with `git format-patch -o` and the encoding verified.
