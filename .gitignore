@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Downloaded artifacts and extracted binaries. ~1.5 GB.
+# Re-fetch with the recipe in docs/case-study-gitify.md.
+targets/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+
+# Logs
+*.log
+npm-debug.log*

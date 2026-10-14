@@ -1,0 +1,14 @@
+{
+  "name": "electron-app-audit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Productized audit pipeline for shipped Electron applications",
+  "scripts": {
+    "audit": "node pipeline/audit.mjs",
+    "selftest": "node pipeline/selftest.mjs"
+  },
+  "dependencies": {
+    "@electron/asar": "^3.2.18"
+  }
+}

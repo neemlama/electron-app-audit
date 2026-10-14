@@ -1,0 +1,270 @@
+{
+  "meta": {
+    "label": "app (Gitify-app-flipped)",
+    "root": "<project>\\targets\\app-1e76ab71-unpacked",
+    "generatedAt": "2026-10-14T18:09:28.299Z",
+    "filesScanned": 429,
+    "filesSkippedLarge": 0,
+    "totals": {
+      "findings": 0,
+      "urls": 19,
+      "telemetry": 1,
+      "sourceMaps": 53,
+      "devBundles": 22,
+      "autoUpdater": true
+    },
+    "bySeverity": {}
+  },
+  "findings": [],
+  "sensitiveFiles": [
+    {
+      "file": "build/main.js",
+      "label": "Main process entry",
+      "why": "Full Node.js and OS access.",
+      "size": 16671
+    },
+    {
+      "file": "build/preload.js",
+      "label": "Preload script",
+      "why": "Runs with Node access in the renderer; the main privilege boundary.",
+      "size": 3098
+    }
+  ],
+  "fuses": {
+    "available": true,
+    "binary": "Gitify.exe",
+    "version": 1,
+    "fuseCount": 9,
+    "fuses": [
+      {
+        "name": "run_as_node",
+        "state": "disabled"
+      },
+      {
+        "name": "enable_cookie_encryption",
+        "state": "enabled"
+      },
+      {
+        "name": "enable_node_options_env",
+        "state": "disabled"
+      },
+      {
+        "name": "enable_node_cli_inspect_args",
+        "state": "disabled"
+      },
+      {
+        "name": "enable_embedded_asar_integrity",
+        "state": "disabled"
+      },
+      {
+        "name": "only_load_app_from_asar",
+        "state": "enabled"
+      },
+      {
+        "name": "load_browser_v8_snapshot",
+        "state": "disabled"
+      },
+      {
+        "name": "grant_file_protocol_extra_privileges",
+        "state": "enabled"
+      },
+      {
+        "name": "wasm_trap_handlers",
+        "state": "enabled"
+      }
+    ],
+    "risky": [],
+    "unconfigured": true
+  },
+  "externalHosts": [
+    {
+      "host": "www.w3.org",
+      "count": 89,
+      "firstSeen": "build/assets/index-DOJv1l9_.js"
+    },
+    {
+      "host": "github.com",
+      "count": 54,
+      "firstSeen": "build/main.js"
+    },
+    {
+      "host": "localhost",
+      "count": 18,
+      "firstSeen": "build/assets/index-DOJv1l9_.js"
+    },
+    {
+      "host": "gitify.io",
+      "count": 4,
+      "firstSeen": "build/main.js"
+    },
+    {
+      "host": "api.github.com",
+      "count": 3,
+      "firstSeen": "build/assets/index-DOJv1l9_.js"
+    },
+    {
+      "host": "bitbucket.org",
+      "count": 2,
+      "firstSeen": "build/assets/index-DOJv1l9_.js"
+    },
+    {
+      "host": "allyoucanleet.com",
+      "count": 2,
+      "firstSeen": "node_modules/lodash.escaperegexp/package.json"
+    },
+    {
+      "host": "s3.amazonaws.com",
+      "count": 1,
+      "firstSeen": "node_modules/builder-util-runtime/out/publishOptions.js"
+    },
+    {
+      "host": "api.atlassian.com",
+      "count": 1,
+      "firstSeen": "build/assets/index-DOJv1l9_.js"
+    },
+    {
+      "host": "support.atlassian.com",
+      "count": 1,
+      "firstSeen": "build/assets/index-DOJv1l9_.js"
+    },
+    {
+      "host": "id.atlassian.com",
+      "count": 1,
+      "firstSeen": "build/assets/index-DOJv1l9_.js"
+    },
+    {
+      "host": "uploads.github.com",
+      "count": 1,
+      "firstSeen": "build/assets/index-DOJv1l9_.js"
+    },
+    {
+      "host": "cli.github.com,",
+      "count": 1,
+      "firstSeen": "build/assets/index-DOJv1l9_.js"
+    },
+    {
+      "host": "docs.gitea.com",
+      "count": 1,
+      "firstSeen": "build/assets/index-DOJv1l9_.js"
+    },
+    {
+      "host": "cdn.jsdelivr.net",
+      "count": 1,
+      "firstSeen": "build/assets/index-DOJv1l9_.js"
+    },
+    {
+      "host": "opencollective.com",
+      "count": 1,
+      "firstSeen": "node_modules/cookie/package.json"
+    },
+    {
+      "host": "api.bitbucket.org",
+      "count": 1,
+      "firstSeen": "node_modules/electron-updater/out/providers/BitbucketProvider.js"
+    },
+    {
+      "host": "blog.izs.me",
+      "count": 1,
+      "firstSeen": "node_modules/sax/package.json"
+    },
+    {
+      "host": "nfriedly.com",
+      "count": 1,
+      "firstSeen": "node_modules/set-cookie-parser/package.json"
+    }
+  ],
+  "telemetry": [
+    "Hotjar"
+  ],
+  "sourceMaps": {
+    "count": 53,
+    "totalBytes": 1121513,
+    "sample": [
+      {
+        "file": "node_modules/builder-util-runtime/out/blockMapApi.js.map",
+        "size": 403
+      },
+      {
+        "file": "node_modules/builder-util-runtime/out/index.js.map",
+        "size": 2599
+      },
+      {
+        "file": "node_modules/builder-util-runtime/out/error.js.map",
+        "size": 454
+      },
+      {
+        "file": "node_modules/builder-util-runtime/out/CancellationToken.js.map",
+        "size": 5648
+      },
+      {
+        "file": "node_modules/builder-util-runtime/out/httpExecutor.js.map",
+        "size": 42807
+      },
+      {
+        "file": "node_modules/builder-util-runtime/out/MemoLazy.js.map",
+        "size": 2756
+      },
+      {
+        "file": "node_modules/builder-util-runtime/out/objects.js.map",
+        "size": 6280
+      },
+      {
+        "file": "node_modules/builder-util-runtime/out/ProgressCallbackTransform.js.map",
+        "size": 3693
+      },
+      {
+        "file": "node_modules/builder-util-runtime/out/publishOptions.js.map",
+        "size": 17843
+      },
+      {
+        "file": "node_modules/builder-util-runtime/out/rfc2253Parser.js.map",
+        "size": 4168
+      }
+    ]
+  },
+  "devBundles": {
+    "count": 22,
+    "sample": [
+      {
+        "file": "node_modules/react/cjs/react-compiler-runtime.development.js",
+        "size": 1090
+      },
+      {
+        "file": "node_modules/react/cjs/react-jsx-dev-runtime.development.js",
+        "size": 12420
+      },
+      {
+        "file": "node_modules/react/cjs/react-jsx-dev-runtime.react-server.development.js",
+        "size": 14009
+      },
+      {
+        "file": "node_modules/react/cjs/react-jsx-runtime.development.js",
+        "size": 13032
+      },
+      {
+        "file": "node_modules/react/cjs/react-jsx-runtime.react-server.development.js",
+        "size": 14005
+      },
+      {
+        "file": "node_modules/react/cjs/react.development.js",
+        "size": 49165
+      },
+      {
+        "file": "node_modules/react/cjs/react.react-server.development.js",
+        "size": 31610
+      },
+      {
+        "file": "node_modules/react-dom/cjs/react-dom-server-legacy.browser.development.js",
+        "size": 421786
+      },
+      {
+        "file": "node_modules/react-dom/cjs/react-dom-server.browser.development.js",
+        "size": 451470
+      },
+      {
+        "file": "node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js",
+        "size": 421783
+      }
+    ]
+  }
+}
