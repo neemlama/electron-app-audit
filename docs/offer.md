@@ -89,22 +89,53 @@ cheapest dispute-prevention measure available.
 
 ## The permission problem
 
-For open-source or self-owned software: proceed. The license covers inspection of
-the shipped artifact.
+Read this before auditing anything you did not build yourself. It is the only part of
+this document that can turn a good engagement into a legal problem, and the distinction
+below is the one people get wrong.
 
-For **commercial software belonging to someone else**: written authorization first.
-No exceptions. Sending findings to a vendor's undisclosed security contact is a
-good-faith disclosure, not an exploit.
+### Inspecting a shipped artifact is almost always fine
 
-Portfolio strategy that keeps this clean and builds credibility at the same time:
+Downloading a publicly distributed app and reading its bundle requires no permission.
+Nobody needs to authorise you to unzip something they gave away.
+
+### Publishing findings about it is a separate question
+
+Open source does **not** settle it. An open-source licence grants rights over the
+*code* — use, modify, distribute. It says nothing about the right to publicise
+*vulnerabilities* in the maintainer's product. Those are different claims, and only
+the first is covered.
+
+So the rule is:
+
+| Target | Inspect | Publish findings |
+| --- | --- | --- |
+| Software you own or built | yes | yes |
+| Open source, maintainer engaged first | yes | after telling them |
+| Open source, no contact made | yes | tell them first |
+| Commercial software | yes | written authorisation |
+
+In every row where you publish, **the maintainer hears it from you first**. There is no
+row where silence then publication is acceptable.
+
+### Why this is stricter than it looks
+
+The failure mode is not legal exposure so much as reputational. A finding published
+before the owner knows it exists is indistinguishable from a drive-by disclosure, and
+nobody in your portfolio is going to read the nuance. Setchy's handling of the Gitify
+fuses is the model: a stranger found a real gap, sent it privately with the evidence
+and an offer to help fix it, and ended up credited in the PR that shipped the fix. That
+is what the same finding looks like when it is done in the right order.
+
+### Portfolio strategy that keeps this clean
 
 1. Audit an open-source app.
 2. **Contact the maintainer privately with the findings.** Do not publish first.
-3. Ask permission to publish a redacted version.
+3. Offer the fix, not just the problem.
+4. Ask permission to publish, after they respond.
 
-That third step is the differentiator. Most people publishing "I found secrets in
-project X" never spoke to anyone. Having the maintainer's reply in your portfolio
-is worth more than the finding itself.
+Step 3 is what most people skip. A report that only says "you have a problem" is an
+obligation. A report that also says "here is the patch, verified" is a contribution,
+and it is the reason the credit goes the other way.
 
 ## What never gets published
 
@@ -113,5 +144,6 @@ Even with permission:
 - Full unredacted credential values — always masked, in every artifact
 - A specific live key that grants access to anything
 - Exploit steps against a system the owner did not authorize
+- Findings about anything other than the artifact you were asked to examine
 
 The report proves you can find and classify. It never becomes a working key.

@@ -1,12 +1,26 @@
 # Outreach: Gitify maintainers
 
-## Why this is not a disclosure, and why that matters
+## Why this needed no embargo, and what that does not mean
 
 `run_as_node` enabled is the **Electron framework default**, not a Gitify defect.
-Same for shipped source maps and dev bundles. None of these are exploitable-by-
-default vulnerabilities, so there is nothing to embargo and no reason to go
-private. A public GitHub issue is the correct channel and is how OSS projects
-actually receive this kind of feedback.
+Same for shipped source maps and dev bundles. None are exploitable-by-default
+vulnerabilities, so there was nothing to embargo.
+
+That is a statement about **urgency**, not about **permission**. It means "the
+maintainer does not need to be shielded from this in the short term." It does not mean
+"publish wherever you like."
+
+The line that matters is *who hears it first*:
+
+- **Public, addressed to the maintainer** — their issue tracker, or a pull request to
+  their repository. They are notified, it is public to everyone, and that is exactly
+  where OSS projects expect this to happen. This is the channel used here.
+- **Public, addressed to your audience first** — your repository, your blog, social
+  media. If they find out from someone else's link, it is a drive-by disclosure
+  regardless of how mild the finding is.
+
+Same finding, same evidence, opposite effect on your reputation. See the permission
+table in `offer.md`.
 
 ## The move that beats "may I publish my report?"
 
