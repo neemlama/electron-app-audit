@@ -132,6 +132,32 @@ api key leak
 "code review" replaces the earlier "desktop app" tag. It matches the category,
 and "electron" already implies desktop. The other four carry intent.
 
+### Development technology (single choice)
+
+The gig builder asks for one primary language. Answer:
+
+```
+JavaScript
+```
+
+Three reasons, in order:
+
+1. It is what you actually read. An Electron `app.asar` contains compiled or
+   minified JavaScript. Choosing TypeScript would describe your client's repo,
+   not the artifact you were paid to audit.
+2. It is the widest filter. This field is a buyer-side filter, not a badge. More
+   people filtering Code Review for JavaScript than for anything else.
+3. Electron apps are JavaScript even when the source is TypeScript, so the
+   answer is accurate for both kinds of client.
+
+**Exception:** if `Electron` or `Desktop Applications` appears as an option, take
+that instead. A narrower label that exactly matches the buyer beats a broad one.
+
+**Second fallback:** `Node.js`, if JavaScript is somehow absent.
+
+Do not pick `TypeScript` for accuracy-by-appearance. The filter is there to put
+you in front of the buyer, and TypeScript narrows the net without adding truth.
+
 ### Packages
 
 Launch pricing. The first three reviews are worth more than the margin, and the
