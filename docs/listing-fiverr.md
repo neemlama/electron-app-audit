@@ -313,14 +313,43 @@ Message me your app and platform first; I will say honestly if it is worth doing
 
 ### Requirements (questions the buyer answers at checkout)
 
-1. Which platform and version? (for example: Windows 11, v2.4.1)
-2. Please attach the built installer, .dmg, AppImage or .asar that your users download.
-3. Is this app yours, or do you have written permission from the owner to have it reviewed?
-4. Is there anything you specifically suspect, or want checked first?
-5. Do you want the report as PDF or Markdown?
+Fiverr allows exactly five. Paste these:
 
-Question 3 is not bureaucracy. It is the cheapest possible filter against a job
-you should not take, and it protects the buyer too.
+```
+1. Which platform and version should I review? Example: Windows 11, v2.4.1. If
+you ship several, tell me which one matters most - one build per package.
+
+2. Please attach the exact build your users download (installer, .dmg, AppImage
+or app.asar). If it is too large to attach, send the public download link for
+that release instead. Source code is not needed - the shipped artifact is the
+point.
+
+3. Is this app yours, or do you have written permission from the owner to have
+it reviewed? I cannot start without this.
+
+4. Is there anything you specifically suspect, or want checked first -
+credentials, Electron fuses, build size, analytics SDKs?
+
+5. How should the report be delivered: PDF, Markdown, or both?
+```
+
+**Why each one earns its slot:**
+
+- **Q1** decides where the binary and the fuse wire live. Without platform and
+  version there is no target to resolve.
+- **Q2** is the whole service. The fallback to a public release link matters
+  because Electron installers run from 100 MB to well over 1 GB, and a failed
+  attachment stalls the order before it starts. Asking for the public release page
+  is also better evidence than a file the buyer assembled themselves.
+- **Q3** is the cheapest filter you will ever write. It costs nothing, it protects
+  the buyer, and it is the one question that stops an order you should refuse.
+- **Q4** tells you which section to lead the report with. Buyers care about the
+  thing they already suspect, even when the report says something else.
+- **Q5** is low value but harmless, and it removes a message round-trip at
+  delivery.
+
+**Do not ask for:** source code, an NDA up front, a budget, or "more details".
+Each one adds friction at the exact moment the buyer has already decided to pay.
 
 ### FAQ
 
