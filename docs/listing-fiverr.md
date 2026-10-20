@@ -158,6 +158,39 @@ that instead. A narrower label that exactly matches the buyer beats a broad one.
 Do not pick `TypeScript` for accuracy-by-appearance. The filter is there to put
 you in front of the buyer, and TypeScript narrows the net without adding truth.
 
+### Types & techniques (up to 5)
+
+Available options: Algorithmic, Clean Code, Code efficiency, Data structure,
+Design patterns, Error handling, Unit tests, Version control.
+
+None of them describe a security audit. Select **three**, not five:
+
+```
+Error handling
+Design patterns
+Code efficiency
+```
+
+**Why these three are defensible, with the evidence from the audits:**
+
+| Selection | Justification |
+| --- | --- |
+| Error handling | The Gitify analysis found a missing `await` on `flipFuses` and a `productFilename` casing bug that silently skipped the Linux build. Both are failure-path defects. Hardening review is largely the question "does this fail safely?" |
+| Design patterns | The renderer review is a review of the main/renderer boundary: `contextIsolation`, the preload surface, `setWindowOpenHandler`, `will-navigate`. That is architecture, and architecture is what this label means to a buyer. |
+| Code efficiency | The StashBase finding is a 342 MiB duplicate binary, 36% of a 949 MiB install. That is shipped-artifact efficiency, not algorithmic efficiency. Weakest of the three - drop it if you want to stay strict. |
+
+**Leave these unselected, deliberately:**
+
+- **Clean Code** - a buyer selecting this wants naming and readability feedback.
+  You do not sell that, and a one-star review is the price of pretending.
+- **Unit tests** - implies coverage review.
+- **Version control** - implies git workflow help.
+- **Algorithmic, Data structure** - no overlap whatsoever.
+
+Five selections would widen the filter net and narrow the quality of buyer. The
+first three reviews decide whether this gig ever earns anything, and a refunded
+order does not produce a review - it produces a dispute.
+
 ### Packages
 
 Launch pricing. The first three reviews are worth more than the margin, and the
