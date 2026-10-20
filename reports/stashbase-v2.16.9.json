@@ -1,0 +1,393 @@
+{
+  "meta": {
+    "label": "app (StashBase-app)",
+    "root": "<project>\\targets\\app-b8d22533-unpacked",
+    "generatedAt": "2026-10-17T16:10:18.631Z",
+    "filesScanned": 3883,
+    "filesSkippedLarge": 1,
+    "totals": {
+      "findings": 1,
+      "urls": 105,
+      "telemetry": 1,
+      "sourceMaps": 0,
+      "devBundles": 0,
+      "autoUpdater": true,
+      "testFilesSkipped": 145,
+      "libraryFindings": 0
+    },
+    "bySeverity": {
+      "medium": 1
+    }
+  },
+  "findings": [
+    {
+      "ruleId": "posthog-key",
+      "title": "PostHog Project API Key",
+      "severity": "medium",
+      "confidence": "likely-valid",
+      "file": "dist/server/index.mjs",
+      "line": 67171,
+      "preview": "phc_s8[redacted]WRgm",
+      "valueLength": 48,
+      "entropy": 4.91,
+      "inLibrary": false,
+      "note": "Write-only ingest key; enables event spam and cost abuse.",
+      "informational": false
+    }
+  ],
+  "sensitiveFiles": [
+    {
+      "file": "dist/electron/external-navigation/preload.cjs",
+      "label": "Preload script",
+      "why": "Runs with Node access in the renderer; the main privilege boundary.",
+      "size": 124197
+    },
+    {
+      "file": "dist/electron/project/preload.cjs",
+      "label": "Preload script",
+      "why": "Runs with Node access in the renderer; the main privilege boundary.",
+      "size": 132379
+    },
+    {
+      "file": "dist/electron/renderer/preload.cjs",
+      "label": "Preload script",
+      "why": "Runs with Node access in the renderer; the main privilege boundary.",
+      "size": 154818
+    },
+    {
+      "file": "dist/electron/updates/preload.cjs",
+      "label": "Preload script",
+      "why": "Runs with Node access in the renderer; the main privilege boundary.",
+      "size": 126700
+    },
+    {
+      "file": "dist/electron/window/preload.cjs",
+      "label": "Preload script",
+      "why": "Runs with Node access in the renderer; the main privilege boundary.",
+      "size": 131728
+    },
+    {
+      "file": "dist/electron/workspace/preload.cjs",
+      "label": "Preload script",
+      "why": "Runs with Node access in the renderer; the main privilege boundary.",
+      "size": 126189
+    },
+    {
+      "file": "electron/external-navigation/preload.ts",
+      "label": "Preload script",
+      "why": "Runs with Node access in the renderer; the main privilege boundary.",
+      "size": 1142
+    },
+    {
+      "file": "electron/main.cjs",
+      "label": "Main process entry",
+      "why": "Full Node.js and OS access.",
+      "size": 44547
+    },
+    {
+      "file": "electron/project/preload.ts",
+      "label": "Preload script",
+      "why": "Runs with Node access in the renderer; the main privilege boundary.",
+      "size": 9041
+    },
+    {
+      "file": "electron/renderer/preload.ts",
+      "label": "Preload script",
+      "why": "Runs with Node access in the renderer; the main privilege boundary.",
+      "size": 1130
+    },
+    {
+      "file": "electron/text-services/preload.ts",
+      "label": "Preload script",
+      "why": "Runs with Node access in the renderer; the main privilege boundary.",
+      "size": 1274
+    },
+    {
+      "file": "electron/updates/preload.ts",
+      "label": "Preload script",
+      "why": "Runs with Node access in the renderer; the main privilege boundary.",
+      "size": 3040
+    },
+    {
+      "file": "electron/window/preload.ts",
+      "label": "Preload script",
+      "why": "Runs with Node access in the renderer; the main privilege boundary.",
+      "size": 2039
+    },
+    {
+      "file": "electron/workspace/preload.ts",
+      "label": "Preload script",
+      "why": "Runs with Node access in the renderer; the main privilege boundary.",
+      "size": 1896
+    }
+  ],
+  "fuses": {
+    "available": true,
+    "binary": "StashBase.exe",
+    "version": 1,
+    "fuseCount": 8,
+    "fuses": [
+      {
+        "name": "run_as_node",
+        "state": "enabled"
+      },
+      {
+        "name": "enable_cookie_encryption",
+        "state": "disabled"
+      },
+      {
+        "name": "enable_node_options_env",
+        "state": "enabled"
+      },
+      {
+        "name": "enable_node_cli_inspect_args",
+        "state": "enabled"
+      },
+      {
+        "name": "enable_embedded_asar_integrity",
+        "state": "disabled"
+      },
+      {
+        "name": "only_load_app_from_asar",
+        "state": "disabled"
+      },
+      {
+        "name": "load_browser_v8_snapshot",
+        "state": "disabled"
+      },
+      {
+        "name": "grant_file_protocol_extra_privileges",
+        "state": "enabled"
+      }
+    ],
+    "risky": [
+      {
+        "name": "run_as_node",
+        "state": "enabled"
+      },
+      {
+        "name": "enable_node_options_env",
+        "state": "enabled"
+      },
+      {
+        "name": "enable_node_cli_inspect_args",
+        "state": "enabled"
+      }
+    ],
+    "unconfigured": true
+  },
+  "externalHosts": [
+    {
+      "host": "json-schema.org",
+      "count": 303,
+      "firstSeen": "dist/mcp/server.mjs"
+    },
+    {
+      "host": "github.com",
+      "count": 248,
+      "firstSeen": "dist/mcp/server.mjs"
+    },
+    {
+      "host": "goo.gl",
+      "count": 120,
+      "firstSeen": "dist/renderer/assets/docx-preview.worker-C_AShDd6.js"
+    },
+    {
+      "host": "www.w3.org",
+      "count": 104,
+      "firstSeen": "dist/renderer/assets/createLucideIcon-DAIWz0zR.js"
+    },
+    {
+      "host": "example.com",
+      "count": 53,
+      "firstSeen": "dist/renderer/assets/pdf-BK0fN3ss.js"
+    },
+    {
+      "host": "schemas.openxmlformats.org",
+      "count": 48,
+      "firstSeen": "dist/renderer/assets/docx-preview.worker-C_AShDd6.js"
+    },
+    {
+      "host": "localhost",
+      "count": 47,
+      "firstSeen": "dist/server/index.mjs"
+    },
+    {
+      "host": "purl.oclc.org",
+      "count": 20,
+      "firstSeen": "dist/renderer/assets/docx-preview.worker-C_AShDd6.js"
+    },
+    {
+      "host": "raw.githubusercontent.com",
+      "count": 17,
+      "firstSeen": "dist/mcp/server.mjs"
+    },
+    {
+      "host": "platform.claude.com",
+      "count": 17,
+      "firstSeen": "node_modules/@anthropic-ai/claude-agent-sdk/browser-sdk.js"
+    },
+    {
+      "host": "opencollective.com",
+      "count": 17,
+      "firstSeen": "node_modules/@modelcontextprotocol/sdk/node_modules/express/package.json"
+    },
+    {
+      "host": "feross.org",
+      "count": 12,
+      "firstSeen": "node_modules/base64-js/package.json"
+    },
+    {
+      "host": "api.anthropic.com",
+      "count": 11,
+      "firstSeen": "node_modules/@anthropic-ai/claude-agent-sdk/browser-sdk.js"
+    },
+    {
+      "host": "blog.izs.me",
+      "count": 11,
+      "firstSeen": "node_modules/chownr/package.json"
+    },
+    {
+      "host": "www.xfa.org",
+      "count": 9,
+      "firstSeen": "dist/renderer/assets/worker-B-kR1qiR.js"
+    },
+    {
+      "host": "day.js.org",
+      "count": 9,
+      "firstSeen": "node_modules/dayjs/esm/plugin/devHelper/index.js"
+    },
+    {
+      "host": "docs.expo.dev",
+      "count": 8,
+      "firstSeen": "node_modules/@anthropic-ai/claude-agent-sdk/browser-sdk.js"
+    },
+    {
+      "host": "docs.anthropic.com",
+      "count": 8,
+      "firstSeen": "node_modules/@anthropic-ai/claude-agent-sdk/browser-sdk.js"
+    },
+    {
+      "host": "sub.example.com",
+      "count": 8,
+      "firstSeen": "node_modules/zod/src/v4/classic/tests/string.test.ts"
+    },
+    {
+      "host": "stuk.github.io",
+      "count": 6,
+      "firstSeen": "dist/renderer/assets/docx-preview.worker-C_AShDd6.js"
+    },
+    {
+      "host": "www.patreon.com",
+      "count": 6,
+      "firstSeen": "node_modules/base64-js/package.json"
+    },
+    {
+      "host": "schemas.microsoft.com",
+      "count": 4,
+      "firstSeen": "dist/renderer/assets/docx-preview.worker-C_AShDd6.js"
+    },
+    {
+      "host": "schemas.zwobble.org",
+      "count": 4,
+      "firstSeen": "dist/renderer/assets/docx-preview.worker-C_AShDd6.js"
+    },
+    {
+      "host": "ns.adobe.com",
+      "count": 4,
+      "firstSeen": "dist/renderer/assets/worker-B-kR1qiR.js"
+    },
+    {
+      "host": "code.claude.com",
+      "count": 4,
+      "firstSeen": "node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs"
+    },
+    {
+      "host": "localhost');",
+      "count": 4,
+      "firstSeen": "node_modules/@modelcontextprotocol/sdk/dist/cjs/examples/client/elicitationUrlExample.js"
+    },
+    {
+      "host": "tjholowaychuk.com)",
+      "count": 4,
+      "firstSeen": "node_modules/bytes/package.json"
+    },
+    {
+      "host": "google.com",
+      "count": 4,
+      "firstSeen": "node_modules/zod/src/v3/tests/string.test.ts"
+    },
+    {
+      "host": "claude.ai",
+      "count": 3,
+      "firstSeen": "dist/server/index.mjs"
+    },
+    {
+      "host": "sindresorhus.com",
+      "count": 3,
+      "firstSeen": "node_modules/decompress-response/package.json"
+    },
+    {
+      "host": "jongleberry.com)",
+      "count": 3,
+      "firstSeen": "node_modules/express/node_modules/raw-body/package.json"
+    },
+    {
+      "host": "substack.net",
+      "count": 3,
+      "firstSeen": "node_modules/github-from-package/package.json"
+    },
+    {
+      "host": "example.org",
+      "count": 3,
+      "firstSeen": "node_modules/zod/src/v4/classic/tests/template-literal.test.ts"
+    },
+    {
+      "host": "evilmartians.com",
+      "count": 2,
+      "firstSeen": "dist/renderer/assets/docx-preview.worker-C_AShDd6.js"
+    },
+    {
+      "host": "www.w3ctech.com",
+      "count": 2,
+      "firstSeen": "dist/renderer/assets/docx-preview.worker-C_AShDd6.js"
+    },
+    {
+      "host": "foo.bar",
+      "count": 2,
+      "firstSeen": "dist/renderer/assets/pdf-BK0fN3ss.js"
+    },
+    {
+      "host": "git.io",
+      "count": 2,
+      "firstSeen": "dist/server/index.mjs"
+    },
+    {
+      "host": "dub.sh",
+      "count": 2,
+      "firstSeen": "dist/server/index.mjs"
+    },
+    {
+      "host": "openrouter.ai",
+      "count": 2,
+      "firstSeen": "dist/server/index.mjs"
+    },
+    {
+      "host": "api.openai.com",
+      "count": 2,
+      "firstSeen": "dist/server/index.mjs"
+    }
+  ],
+  "telemetry": [
+    "Hotjar"
+  ],
+  "sourceMaps": {
+    "count": 0,
+    "totalBytes": 0,
+    "sample": []
+  },
+  "devBundles": {
+    "count": 0,
+    "sample": []
+  }
+}
