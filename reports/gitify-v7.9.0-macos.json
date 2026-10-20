@@ -2,7 +2,7 @@
   "meta": {
     "label": "Gitify 7.9.0",
     "target": "macOS install, Contents/Resources/app.asar",
-    "generatedAt": "2026-10-20T03:44:06.267Z",
+    "generatedAt": "2026-10-20T03:52:28.665Z",
     "filesScanned": 429,
     "filesSkippedLarge": 0,
     "totals": {
@@ -13,11 +13,53 @@
       "devBundles": 44,
       "autoUpdater": true,
       "testFilesSkipped": 0,
-      "libraryFindings": 0
+      "libraryFindings": 0,
+      "hardening": 3
     },
-    "bySeverity": {}
+    "bySeverity": {},
+    "guardSignals": {
+      "preload": true,
+      "windowOpen": false,
+      "navigation": false,
+      "permission": false,
+      "csp": true
+    }
   },
   "findings": [],
+  "hardening": [
+    {
+      "ruleId": "no-window-open-handler",
+      "title": "No window-open handler in the main process",
+      "severity": "medium",
+      "file": null,
+      "line": null,
+      "occurrences": 0,
+      "evidence": null,
+      "why": "Without setWindowOpenHandler, a window.open() from the renderer is handled by Electron's default, which creates a new window rather than refusing. The safe default is to deny and route genuine external links through shell.openExternal.",
+      "absence": true
+    },
+    {
+      "ruleId": "no-navigation-guard",
+      "title": "Navigation is not restricted in the main process",
+      "severity": "medium",
+      "file": null,
+      "line": null,
+      "occurrences": 0,
+      "evidence": null,
+      "why": "Without a will-navigate handler the window may navigate away from the bundled page. The preload script is re-attached to whatever page ends up in that window, so a preload that exposes IPC would be exposed to that origin too.",
+      "absence": true
+    },
+    {
+      "ruleId": "websecurity-env-gated",
+      "title": "webSecurity decided by an environment variable",
+      "severity": "medium",
+      "file": "build/main.js",
+      "line": 1,
+      "occurrences": 1,
+      "evidence": "...s:{preload:D.preload,contextIsolation:!0,nodeIntegration:!1,webSecurity:!process.env.VITE_DEV_SERVER_URL,backgroundThrottling:!1}},k=`gitify:`,A={AUTH_CALLBACK:`${k}auth-callback`,QUIT:`${k}quit`,WINDOW_SHOW:`${k}window-",
+      "why": "A development switch that is evaluated unconditionally. In a packaged build this value is decided by whatever the launching environment contains, not by the build configuration."
+    }
+  ],
   "sensitiveFiles": [
     {
       "file": "build/main.js",
@@ -196,20 +238,20 @@
     "totalBytes": 2243026,
     "sample": [
       {
-        "file": "node_modules/builder-util-runtime/out/CancellationToken.js.map",
-        "size": 5648
-      },
-      {
-        "file": "node_modules/builder-util-runtime/out/CancellationToken.js.map",
-        "size": 5648
-      },
-      {
         "file": "node_modules/builder-util-runtime/out/blockMapApi.js.map",
         "size": 403
       },
       {
         "file": "node_modules/builder-util-runtime/out/blockMapApi.js.map",
         "size": 403
+      },
+      {
+        "file": "node_modules/builder-util-runtime/out/CancellationToken.js.map",
+        "size": 5648
+      },
+      {
+        "file": "node_modules/builder-util-runtime/out/CancellationToken.js.map",
+        "size": 5648
       },
       {
         "file": "node_modules/builder-util-runtime/out/httpExecutor.js.map",
@@ -220,20 +262,20 @@
         "size": 42807
       },
       {
-        "file": "node_modules/builder-util-runtime/out/error.js.map",
-        "size": 454
-      },
-      {
-        "file": "node_modules/builder-util-runtime/out/error.js.map",
-        "size": 454
-      },
-      {
         "file": "node_modules/builder-util-runtime/out/index.js.map",
         "size": 2599
       },
       {
         "file": "node_modules/builder-util-runtime/out/index.js.map",
         "size": 2599
+      },
+      {
+        "file": "node_modules/builder-util-runtime/out/ProgressCallbackTransform.js.map",
+        "size": 3693
+      },
+      {
+        "file": "node_modules/builder-util-runtime/out/ProgressCallbackTransform.js.map",
+        "size": 3693
       }
     ]
   },

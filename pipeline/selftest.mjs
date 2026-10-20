@@ -404,5 +404,96 @@ console.log("\n6. report identity and macOS bundles")
   await fs.rm(`${out}.md`, { force: true }).catch(() => {})
 }
 
+// -- section 7: renderer hardening detector -----------------------------
+// The real-world calibration for these rules:
+//   Gitify 7.9.0      preload yes, window-open no, navigation no, permission no -> 3 findings
+//   StashBase 2.16.9  every guard present, CSP present                        -> 0 findings
+// A rule set that fires on everything is worth nothing, so both directions are
+// asserted here.
+
+console.log("\n7. renderer hardening detector")
+
+async function runHardeningFixture(name, files) {
+  const base = path.join(ROOT, "targets", `_selftest-hard-${name}`)
+  await fs.rm(base, { recursive: true, force: true })
+  const appDir = path.join(base, "resources", "app")
+  for (const [rel, content] of Object.entries(files)) {
+    const full = path.join(appDir, rel)
+    await fs.mkdir(path.dirname(full), { recursive: true })
+    await fs.writeFile(full, content, "utf-8")
+  }
+  const out = path.join(ROOT, "reports", `_selftest-hard-${name}`)
+  execFileSync(process.execPath, [path.join(ROOT, "pipeline", "audit.mjs"), base, "--out", out], {
+    stdio: "pipe",
+  })
+  const report = JSON.parse(await fs.readFile(`${out}.json`, "utf-8"))
+  await fs.rm(base, { recursive: true, force: true }).catch(() => {})
+  await fs.rm(`${out}.json`, { force: true }).catch(() => {})
+  await fs.rm(`${out}.md`, { force: true }).catch(() => {})
+  return report
+}
+
+{
+  const weak = await runHardeningFixture("weak", {
+    "package.json": JSON.stringify({ name: "weakapp", version: "1.0.0" }),
+    "main.js": [
+      "const { BrowserWindow } = require('electron')",
+      "new BrowserWindow({",
+      "  webPreferences: {",
+      "    preload: __dirname + '/preload.js',",
+      "    contextIsolation: true,",
+      "    nodeIntegration: true,",
+      "    webSecurity: !process.env.DEV_SERVER,",
+      "  },",
+      "})",
+      "",
+    ].join("\n"),
+    "preload.js": "const { contextBridge } = require('electron')\n",
+    "index.html": "<!doctype html><html><body></body></html>",
+  })
+
+  const ids = weak.hardening.map((h) => h.ruleId)
+  check(ids.includes("node-integration"), "nodeIntegration: true is reported")
+  check(ids.includes("websecurity-env-gated"), "webSecurity driven by an env var is reported")
+  check(ids.includes("no-window-open-handler"), "missing window-open handler is reported")
+  check(ids.includes("no-navigation-guard"), "missing navigation guard is reported")
+  check(ids.includes("no-content-security-policy"), "missing CSP is reported")
+  check(!ids.includes("sandbox-off"), "does not invent a sandbox finding when sandbox is unset")
+  check(!ids.includes("context-isolation-off"), "does not report contextIsolation when it is true")
+}
+
+{
+  // The control: the same scanner against a correctly configured app.
+  const good = await runHardeningFixture("good", {
+    "package.json": JSON.stringify({ name: "goodapp", version: "1.0.0" }),
+    "main.js": [
+      "const { BrowserWindow } = require('electron')",
+      "const win = new BrowserWindow({",
+      "  webPreferences: {",
+      "    preload: __dirname + '/preload.js',",
+      "    contextIsolation: true,",
+      "    nodeIntegration: false,",
+      "    sandbox: true,",
+      "    webSecurity: true,",
+      "    webviewTag: false,",
+      "  },",
+      "})",
+      "win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))",
+      "win.webContents.on('will-navigate', (event) => event.preventDefault())",
+      "win.webContents.session.setPermissionRequestHandler((_wc, _p, cb) => cb(false))",
+      "",
+    ].join("\n"),
+    "preload.js": "const { contextBridge } = require('electron')\n",
+    "index.html":
+      '<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="default-src \'none\'"></head><body></body></html>',
+  })
+
+  check(good.hardening.length === 0, "a correctly configured app produces no hardening findings")
+  check(
+    Object.values(good.meta.guardSignals).every(Boolean),
+    "all guard signals detected on a compliant app",
+  )
+}
+
 console.log(`\n${pass} passed, ${fail} failed\n`)
 process.exit(fail ? 1 : 0)

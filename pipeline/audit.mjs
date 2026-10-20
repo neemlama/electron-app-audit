@@ -22,6 +22,12 @@ import {
   looksLikeRealSecret,
   entropy,
 } from "./lib/patterns.mjs"
+import {
+  HARDENING_RULES,
+  GUARD_SIGNALS,
+  ABSENCE_CHECKS,
+  CONTEXT_WINDOW,
+} from "./lib/hardening.mjs"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, "..")
@@ -385,6 +391,8 @@ async function readFuses(appRoot) {
 // -- step 3: scan -------------------------------------------------------
 async function scanFiles(files, root) {
   const findings = []
+  const hardening = []
+  const guardSignals = { preload: false, windowOpen: false, navigation: false, permission: false, csp: false }
   const urls = new Map()
   const telemetry = new Set()
   const sourceMaps = []
@@ -478,6 +486,55 @@ async function scanFiles(files, root) {
       }
     }
 
+    // -- renderer hardening -------------------------------------------
+    // The app's own code only. A library's config object is not this app's
+    // security posture, and including libraries would drown the report.
+    if (!relPath.startsWith("node_modules/")) {
+      for (const [name, pattern] of Object.entries(GUARD_SIGNALS)) {
+        const list = Array.isArray(pattern) ? pattern : [pattern]
+        if (list.some((re) => re.test(text))) guardSignals[name] = true
+      }
+
+      for (const rule of HARDENING_RULES) {
+        const flags = rule.regex.flags.includes("g") ? rule.regex.flags : `${rule.regex.flags}g`
+        const re = new RegExp(rule.regex.source, flags)
+        let m
+        let hits = 0
+        let firstIndex = -1
+        while ((m = re.exec(text)) !== null && hits < 20) {
+          if (rule.context) {
+            const around = text.slice(
+              Math.max(0, m.index - CONTEXT_WINDOW),
+              m.index + m[0].length + CONTEXT_WINDOW,
+            )
+            if (!rule.context.test(around)) {
+              if (m.index === re.lastIndex) re.lastIndex++
+              continue
+            }
+          }
+          if (firstIndex < 0) firstIndex = m.index
+          hits++
+          if (m.index === re.lastIndex) re.lastIndex++
+        }
+        if (!hits) continue
+
+        const from = Math.max(0, firstIndex - 60)
+        hardening.push({
+          ruleId: rule.id,
+          title: rule.title,
+          severity: rule.severity,
+          file: relPath,
+          line: text.slice(0, firstIndex).split("\n").length,
+          occurrences: hits,
+          evidence: `${from > 0 ? "..." : ""}${text
+            .slice(from, firstIndex + 160)
+            .replace(/\s+/g, " ")
+            .trim()}`,
+          why: rule.why,
+        })
+      }
+    }
+
     for (const sdk of TELEMETRY_SDKS) {
       if (sdk.pattern.test(text)) telemetry.add(sdk.label)
     }
@@ -501,7 +558,33 @@ async function scanFiles(files, root) {
     }
   })
 
-  return { findings, urls, telemetry: [...telemetry], sourceMaps, devBundles, autoUpdater, scanned, skippedLarge, testFilesSkipped }
+  const absence = ABSENCE_CHECKS.filter(
+    (c) => (!c.requires || guardSignals[c.requires]) && !guardSignals[c.signal],
+  ).map((c) => ({
+    ruleId: c.id,
+    title: c.title,
+    severity: c.severity,
+    file: null,
+    line: null,
+    occurrences: 0,
+    evidence: null,
+    why: c.why,
+    absence: true,
+  }))
+
+  return {
+    findings,
+    hardening: [...hardening, ...absence],
+    guardSignals,
+    urls,
+    telemetry: [...telemetry],
+    sourceMaps,
+    devBundles,
+    autoUpdater,
+    scanned,
+    skippedLarge,
+    testFilesSkipped,
+  }
 }
 
 // -- step 4: sensitive files -------------------------------------------
@@ -551,10 +634,15 @@ function buildReport(meta, scan, sensitive, fuses) {
         autoUpdater: scan.autoUpdater,
         testFilesSkipped: scan.testFilesSkipped,
         libraryFindings: findings.filter((f) => f.inLibrary).length,
+        hardening: scan.hardening.length,
       },
       bySeverity,
+      guardSignals: scan.guardSignals,
     },
     findings,
+    hardening: [...scan.hardening].sort(
+      (a, b) => SEV_ORDER[a.severity] - SEV_ORDER[b.severity] || (a.file ?? "").localeCompare(b.file ?? ""),
+    ),
     sensitiveFiles: sensitive,
     fuses,
     externalHosts: external.slice(0, 40),
@@ -602,6 +690,11 @@ function renderMarkdown(r) {
   if (r.meta.totals.devBundles) lines.push(`${r.meta.totals.devBundles} development-mode bundle(s) ship in what should be a production build.`)
   if (r.telemetry.length) lines.push(`Telemetry/analytics SDKs present: ${r.telemetry.join(", ")}.`)
   if (r.fuses?.available && r.fuses.risky?.length) lines.push(`${r.fuses.risky.length} Electron hardening switch(es) left at defaults (${r.fuses.risky.map((f) => f.name).join(", ")}).`)
+
+  const hardHigh = r.hardening.filter((h) => h.severity === "high").length
+  const hardMed = r.hardening.filter((h) => h.severity === "medium").length
+  if (hardHigh) lines.push(`${hardHigh} high severity renderer hardening issue(s) in the app's own code.`)
+  if (hardMed) lines.push(`${hardMed} medium severity renderer hardening issue(s).`)
 
   for (const l of lines) L.push(`- ${l}`)
   L.push("")
@@ -671,6 +764,32 @@ function renderMarkdown(r) {
     L.push("| --- | --- | --- |")
     for (const s of r.sensitiveFiles) L.push(`| \`${s.file}\` | ${s.label} | ${s.why} |`)
     L.push("")
+  }
+
+  if (r.hardening.length) {
+    L.push("## Renderer hardening", "")
+    L.push(
+      "Checks on the app's own renderer configuration and IPC surface. \"Not found in shipped code\" is an absence check: the guard's identifier was not located, and a guard written in an unusual way can read as missing. Treat those as review prompts, not as proof.",
+    )
+    L.push("")
+    for (const h of r.hardening) {
+      L.push(`### ${h.title}`)
+      L.push("")
+      L.push(
+        h.absence
+          ? `Severity: **${h.severity}** | Not found in shipped code`
+          : `Severity: **${h.severity}** | \`${h.file}:${h.line}\`${h.occurrences > 1 ? ` (${h.occurrences} occurrences)` : ""}`,
+      )
+      L.push("")
+      L.push(h.why)
+      L.push("")
+      if (h.evidence) {
+        L.push("```")
+        L.push(h.evidence)
+        L.push("```")
+        L.push("")
+      }
+    }
   }
 
   if (r.fuses?.available) {

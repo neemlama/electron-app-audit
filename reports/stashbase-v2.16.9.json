@@ -2,7 +2,7 @@
   "meta": {
     "label": "StashBase 2.16.9",
     "target": "Windows install, resources/app.asar",
-    "generatedAt": "2026-10-20T03:44:02.239Z",
+    "generatedAt": "2026-10-20T03:52:24.651Z",
     "filesScanned": 3883,
     "filesSkippedLarge": 1,
     "totals": {
@@ -13,10 +13,18 @@
       "devBundles": 0,
       "autoUpdater": true,
       "testFilesSkipped": 145,
-      "libraryFindings": 0
+      "libraryFindings": 0,
+      "hardening": 0
     },
     "bySeverity": {
       "medium": 1
+    },
+    "guardSignals": {
+      "preload": true,
+      "windowOpen": true,
+      "navigation": true,
+      "permission": true,
+      "csp": true
     }
   },
   "findings": [
@@ -35,6 +43,7 @@
       "informational": false
     }
   ],
+  "hardening": [],
   "sensitiveFiles": [
     {
       "file": "dist/electron/external-navigation/preload.cjs",
@@ -210,7 +219,7 @@
     {
       "host": "localhost",
       "count": 47,
-      "firstSeen": "node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs"
+      "firstSeen": "dist/server/index.mjs"
     },
     {
       "host": "purl.oclc.org",
@@ -320,7 +329,7 @@
     {
       "host": "claude.ai",
       "count": 3,
-      "firstSeen": "node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs"
+      "firstSeen": "dist/server/index.mjs"
     },
     {
       "host": "sindresorhus.com",

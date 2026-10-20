@@ -1,7 +1,7 @@
 # Electron App Audit - Gitify 7.9.0
 
 - **Target:** Windows install, resources/app.asar
-- **Generated:** 2026-10-20T03:44:03.666Z
+- **Generated:** 2026-10-20T03:52:26.108Z
 - **Files scanned:** 429
 - **Credential findings:** 0
 
@@ -26,6 +26,7 @@ Test files (0) are excluded from credential scanning: they ship fake credentials
 - 44 development-mode bundle(s) ship in what should be a production build.
 - Telemetry/analytics SDKs present: Hotjar.
 - 3 Electron hardening switch(es) left at defaults (run_as_node, enable_node_options_env, enable_node_cli_inspect_args).
+- 3 medium severity renderer hardening issue(s).
 
 Read **Coverage and limits** before treating a clean credential result as a clean bill of health.
 
@@ -44,10 +45,10 @@ Source maps let anyone reconstruct near-original source from the shipped binary.
 - `node_modules/builder-util-runtime/out/CancellationToken.js.map` (6 KB)
 - `node_modules/builder-util-runtime/out/error.js.map` (0 KB)
 - `node_modules/builder-util-runtime/out/error.js.map` (0 KB)
-- `node_modules/builder-util-runtime/out/index.js.map` (3 KB)
-- `node_modules/builder-util-runtime/out/index.js.map` (3 KB)
 - `node_modules/builder-util-runtime/out/httpExecutor.js.map` (42 KB)
 - `node_modules/builder-util-runtime/out/httpExecutor.js.map` (42 KB)
+- `node_modules/builder-util-runtime/out/ProgressCallbackTransform.js.map` (4 KB)
+- `node_modules/builder-util-runtime/out/ProgressCallbackTransform.js.map` (4 KB)
 
 ### Development bundles in a production build (44)
 
@@ -83,6 +84,32 @@ Third-party library internals are excluded; these are the app's own files.
 | `build/main.js` | Main process entry | Full Node.js and OS access. |
 | `build/preload.js` | Preload script | Runs with Node access in the renderer; the main privilege boundary. |
 
+## Renderer hardening
+
+Checks on the app's own renderer configuration and IPC surface. "Not found in shipped code" is an absence check: the guard's identifier was not located, and a guard written in an unusual way can read as missing. Treat those as review prompts, not as proof.
+
+### No window-open handler in the main process
+
+Severity: **medium** | Not found in shipped code
+
+Without setWindowOpenHandler, a window.open() from the renderer is handled by Electron's default, which creates a new window rather than refusing. The safe default is to deny and route genuine external links through shell.openExternal.
+
+### Navigation is not restricted in the main process
+
+Severity: **medium** | Not found in shipped code
+
+Without a will-navigate handler the window may navigate away from the bundled page. The preload script is re-attached to whatever page ends up in that window, so a preload that exposes IPC would be exposed to that origin too.
+
+### webSecurity decided by an environment variable
+
+Severity: **medium** | `build/main.js:1`
+
+A development switch that is evaluated unconditionally. In a packaged build this value is decided by whatever the launching environment contains, not by the build configuration.
+
+```
+...s:{preload:D.preload,contextIsolation:!0,nodeIntegration:!1,webSecurity:!process.env.VITE_DEV_SERVER_URL,backgroundThrottling:!1}},k=`gitify:`,A={AUTH_CALLBACK:`${k}auth-callback`,QUIT:`${k}quit`,WINDOW_SHOW:`${k}window-
+```
+
 ## Electron fuses
 
 Binary: `Gitify.exe` | fuse version 1
@@ -111,7 +138,7 @@ Documentation and comment URLs are filtered out. What remains are hosts referenc
 
 | Host | References | First seen in |
 | --- | --- | --- |
-| www.w3.org | 89 | `build/assets/index-DOJv1l9_.js` |
+| www.w3.org | 89 | `build/assets/index-Cu4tIgv9.css` |
 | github.com | 54 | `build/main.js` |
 | localhost | 18 | `build/assets/index-DOJv1l9_.js` |
 | gitify.io | 4 | `build/main.js` |
