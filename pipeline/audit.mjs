@@ -12,7 +12,6 @@
 
 import * as fs from "node:fs/promises"
 import * as fsSync from "node:fs"
-import * as os from "node:os"
 import * as path from "node:path"
 import { fileURLToPath } from "node:url"
 import {
@@ -147,15 +146,22 @@ async function resolveTarget(input) {
   if (stat.isDirectory()) {
     // Specific locations first, the directory itself last. `abs` must not be
     // tried first or it always wins and we never reach the nested asar.
-    const nestedAsar = path.join(abs, "resources", "app.asar")
-    if (fsSync.existsSync(nestedAsar)) return resolveTarget(nestedAsar)
+    // macOS keeps the payload under Contents/Resources, Windows and Linux do not.
+    for (const nested of [
+      path.join(abs, "resources", "app.asar"),
+      path.join(abs, "Contents", "Resources", "app.asar"),
+    ]) {
+      if (fsSync.existsSync(nested)) return resolveTarget(nested)
+    }
 
     for (const c of [path.join(abs, "resources", "app"), path.join(abs, "app")]) {
       try {
-        if ((await fs.stat(c)).isDirectory()) return { root: c, installRoot: abs, label: path.basename(abs) }
+        if ((await fs.stat(c)).isDirectory()) {
+          return { root: c, installRoot: abs, artifact: path.relative(abs, c) || "." }
+        }
       } catch {}
     }
-    return { root: abs, installRoot: abs, label: path.basename(abs) }
+    return { root: abs, installRoot: abs, artifact: "." }
   }
 
   if (abs.endsWith(".asar")) {
@@ -172,10 +178,16 @@ async function resolveTarget(input) {
       process.exit(2)
     }
     if (!fsSync.existsSync(dest)) await asar.extractAll(abs, dest)
-    // The fuse binary is the platform .exe, which lives two levels up from
+    // The fuse binary is the platform executable, which lives two levels up from
     // app.asar (app root / resources / app.asar), not inside the unpacked tree.
-    const installRoot = path.dirname(path.dirname(abs))
-    return { root: dest, installRoot, label: `${path.basename(abs, ".asar")} (${path.basename(installRoot)})` }
+    // On macOS that lands on Contents/, so step out to the .app bundle itself.
+    let installRoot = path.dirname(path.dirname(abs))
+    if (path.basename(installRoot).toLowerCase() === "contents") installRoot = path.dirname(installRoot)
+    return {
+      root: dest,
+      installRoot,
+      artifact: path.relative(installRoot, abs),
+    }
   }
 
   const asar = path.join(abs, "resources", "app.asar")
@@ -183,6 +195,78 @@ async function resolveTarget(input) {
 
   console.error(`unrecognised target: ${abs}`)
   process.exit(1)
+}
+
+// -- step 1b: what to call this app in the report -----------------------
+// A report is read by a client, not by us. "# Electron App Audit - app
+// (StashBase-app)" was the name inside app.asar plus our scratch directory;
+// neither means anything outside this machine. Prefer what the user sees on
+// their desktop: the shipped binary's name.
+const GENERIC_NAMES = new Set(["app", "electron", "application", "main", "desktop", "index"])
+
+function tidyName(s) {
+  return String(s ?? "")
+    .replace(/-unpacked$/i, "")
+    .replace(/-[0-9a-f]{8}$/i, "")
+    .replace(/\.app$/i, "")
+    .replace(/[-_.]+/g, " ")
+    .trim()
+}
+
+async function resolveIdentity(installRoot, root) {
+  let pkg = null
+  try {
+    pkg = JSON.parse(await fs.readFile(path.join(root, "package.json"), "utf-8"))
+  } catch {}
+
+  const candidates = []
+
+  // On macOS the bundle name is what the user sees in Finder and the Dock.
+  if (/\.app$/i.test(installRoot)) candidates.push(path.basename(installRoot, path.extname(installRoot)))
+
+  // The main executable, largest first. On Windows this is the name the user double-clicks.
+  try {
+    const exes = (await fs.readdir(installRoot)).filter((f) => /\.exe$/i.test(f))
+    exes.sort(
+      (a, b) =>
+        fsSync.statSync(path.join(installRoot, b)).size - fsSync.statSync(path.join(installRoot, a)).size,
+    )
+    if (exes[0]) candidates.push(path.basename(exes[0], path.extname(exes[0])))
+  } catch {}
+
+  if (pkg?.productName) candidates.push(pkg.productName)
+  if (pkg?.name && !GENERIC_NAMES.has(String(pkg.name).toLowerCase())) candidates.push(pkg.name)
+  candidates.push(tidyName(path.basename(installRoot)))
+
+  const name =
+    candidates.map(tidyName).find((c) => c && !GENERIC_NAMES.has(c.toLowerCase())) ?? "Unknown app"
+  const version = typeof pkg?.version === "string" ? pkg.version : null
+  const label = version ? `${name} ${version}` : name
+  const slug = label
+    .toLowerCase()
+    .replace(/[^a-z0-9.]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+
+  return { name, version, label, slug }
+}
+
+function platformOf(installRoot) {
+  if (/\.app$/i.test(installRoot)) return "macOS"
+  try {
+    const entries = fsSync.readdirSync(installRoot)
+    if (entries.some((f) => /\.exe$/i.test(f))) return "Windows"
+    if (entries.some((f) => /\.app$/i.test(f))) return "macOS"
+  } catch {}
+  return null
+}
+
+function describeArtifact(installRoot, artifact) {
+  // Say what is actually known. An extracted asar install has a platform and a
+  // location; a bare application directory may have neither.
+  const platform = platformOf(installRoot)
+  const where = artifact && artifact !== "." ? String(artifact).replace(/\\/g, "/") : null
+  if (where) return platform ? `${platform} install, ${where}` : where
+  return platform ? `${platform} application directory` : "application directory"
 }
 
 // -- step 2: electron fuses --------------------------------------------
@@ -206,29 +290,69 @@ const FUSE_NAMES = [
 const FUSE_STATE = { 48: "disabled", 49: "enabled", 114: "removed", 144: "inherit" }
 const RISKY_FUSES = new Set(["run_as_node", "enable_node_options_env", "enable_node_cli_inspect_args"])
 
-async function readFuses(appRoot) {
-  // Search the app root FIRST. A parent directory may contain the original
-  // installer, which is far larger than the app binary and carries no fuse
-  // sentinel -- picking by size alone would read the wrong file.
-  let exe = null
-  const dirs = [appRoot, path.dirname(appRoot)]
-  for (const dir of dirs) {
-    const found = []
+/**
+ * Find the Electron main executable inside an install root.
+ *
+ * Deliberately does NOT walk to the parent directory. For a .app bundle the
+ * parent is the audit operator's scratch folder, and an earlier version picked
+ * the largest installer there - which produced a macOS report that named a
+ * different app's Windows installer. Wrong identification is worse than no
+ * identification, so this returns null instead of guessing.
+ */
+async function findMainBinary(appRoot) {
+  // macOS: @electron/fuses writes the wire into the Electron Framework binary,
+  // not the ~100 KB launcher stub in Contents/MacOS. Reading the stub reports
+  // "no sentinel" on a build that really does have a fuse wire.
+  if (/\.app$/i.test(appRoot)) {
+    const fw = path.join(appRoot, "Contents", "Frameworks", "Electron Framework.framework")
+    for (const rel of [path.join("Versions", "A", "Electron Framework"), "Electron Framework"]) {
+      const full = path.join(fw, rel)
+      try {
+        const st = await fs.stat(full)
+        return { full, name: "Electron Framework", size: st.size }
+      } catch {}
+    }
+    // Unusual bundle: fall back to the launcher so the report can still say
+    // which file it looked at.
+    const macos = path.join(appRoot, "Contents", "MacOS")
     try {
-      for (const e of await fs.readdir(dir, { withFileTypes: true })) {
-        if (e.isFile() && e.name.toLowerCase().endsWith(".exe")) {
-          const full = path.join(dir, e.name)
-          found.push({ full, size: (await fs.stat(full)).size, name: e.name })
-        }
-      }
-    } catch {}
-    if (found.length) {
-      found.sort((a, b) => b.size - a.size)
-      exe = found[0]
-      break
+      const entries = (await fs.readdir(macos, { withFileTypes: true })).filter((e) => e.isFile())
+      if (!entries.length) return null
+      const sized = await Promise.all(
+        entries.map(async (e) => {
+          const full = path.join(macos, e.name)
+          return { full, name: e.name, size: (await fs.stat(full)).size }
+        }),
+      )
+      sized.sort((a, b) => b.size - a.size)
+      return sized[0]
+    } catch {
+      return null
     }
   }
-  if (!exe) return { available: false, reason: "no .exe binary found near the app resources (expected for macOS or Linux builds)" }
+
+  // Windows: the largest .exe directly in the install root.
+  const found = []
+  try {
+    for (const e of await fs.readdir(appRoot, { withFileTypes: true })) {
+      if (!e.isFile() || !/\.exe$/i.test(e.name)) continue
+      const full = path.join(appRoot, e.name)
+      found.push({ full, name: e.name, size: (await fs.stat(full)).size })
+    }
+  } catch {}
+  if (!found.length) return null
+  found.sort((a, b) => b.size - a.size)
+  return found[0]
+}
+
+async function readFuses(appRoot) {
+  const exe = await findMainBinary(appRoot)
+  if (!exe) {
+    return {
+      available: false,
+      reason: `no Electron executable found in ${path.basename(appRoot)}`,
+    }
+  }
 
   let buf
   try {
@@ -447,7 +571,7 @@ function renderMarkdown(r) {
   const high = sev.high ?? 0
 
   L.push(`# Electron App Audit - ${r.meta.label}`, "")
-  L.push(`- **Target:** \`${r.meta.root}\``)
+  L.push(`- **Target:** ${r.meta.target}`)
   L.push(`- **Generated:** ${r.meta.generatedAt}`)
   L.push(`- **Files scanned:** ${r.meta.filesScanned}${r.meta.filesSkippedLarge ? ` (${r.meta.filesSkippedLarge} over 8 MB skipped)` : ""}`)
   L.push(`- **Credential findings:** ${r.meta.totals.findings}${Object.keys(sev).length ? ` (${Object.entries(sev).map(([k, v]) => `${v} ${k}`).join(", ")})` : ""}`)
@@ -623,17 +747,13 @@ function renderMarkdown(r) {
 }
 
 // -- run ----------------------------------------------------------------
-// Reports are published in portfolios, so never embed the operator's absolute
-// home path in a deliverable.
-function displayPath(p) {
-  const relToRoot = path.relative(ROOT, p)
-  if (relToRoot && !relToRoot.startsWith("..")) return path.join("<project>", relToRoot)
-  const home = os.homedir()
-  return p.startsWith(home) ? path.join("~", p.slice(home.length)) : p
-}
-
-const { root, label, installRoot } = await resolveTarget(targetArg)
+// Reports are published in portfolios, so nothing about the operator's machine
+// may reach a deliverable. The header carries an app identity and an artifact
+// description instead of a filesystem path.
+const { root, installRoot, artifact } = await resolveTarget(targetArg)
+const identity = await resolveIdentity(installRoot ?? root, root)
 console.error(`[audit] target: ${root}`)
+console.error(`[audit] identified as: ${identity.label}`)
 console.error(`[audit] install root (for fuses): ${installRoot ?? root}`)
 
 const files = await walk(root)
@@ -644,9 +764,14 @@ const sensitive = await findSensitiveFiles(files, root)
 const scan = await scanFiles(files, root)
 console.error(`[audit] scanned ${scan.scanned} files | ${scan.findings.length} credential findings`)
 
-const report = buildReport({ label, root: displayPath(root) }, scan, sensitive, fuses)
+const report = buildReport(
+  { label: identity.label, target: describeArtifact(installRoot ?? root, artifact) },
+  scan,
+  sensitive,
+  fuses,
+)
 
-const slug = (outDir ?? path.join(ROOT, "reports", label)).replace(/\\/g, "/")
+const slug = (outDir ?? path.join(ROOT, "reports", identity.slug)).replace(/\\/g, "/")
 const outBase = path.isAbsolute(slug) ? slug : path.resolve(ROOT, slug)
 await fs.mkdir(path.dirname(outBase), { recursive: true })
 

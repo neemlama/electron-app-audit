@@ -289,5 +289,120 @@ console.log("\n5. false-positive regressions (from a real audit)")
   await fs.rm(`${outBase3}.md`, { force: true }).catch(() => {})
 }
 
+// -- section 6: report identity and macOS bundles -----------------------
+// Two bugs found by running the tool on real artefacts, not by reading it.
+//
+// 1. The title read "app (StashBase-app)": the name inside app.asar plus our
+//    own scratch directory. Meaningless to a client.
+// 2. A macOS target reported a Windows installer's filename. readFuses looked
+//    for .exe, found none in the .app, walked up to the scratch folder and
+//    picked whichever installer was largest there.
+//
+// Both fixtures below are synthetic and are deleted afterwards.
+
+console.log("\n6. report identity and macOS bundles")
+
+{
+  const base = path.join(ROOT, "targets", "_selftest-id")
+  await fs.rm(base, { recursive: true, force: true })
+  const install = path.join(base, "CoolApp-win")
+  const appDir = path.join(install, "resources", "app")
+  await fs.mkdir(appDir, { recursive: true })
+  // name "app" is exactly what tripped the old title logic.
+  await fs.writeFile(
+    path.join(appDir, "package.json"),
+    JSON.stringify({ name: "app", version: "1.2.3" }, null, 2),
+    "utf-8",
+  )
+  await fs.writeFile(path.join(appDir, "main.js"), "console.log(1)\n", "utf-8")
+  await fs.writeFile(path.join(install, "CoolApp.exe"), Buffer.alloc(2048, 0))
+
+  const out = path.join(ROOT, "reports", "_selftest-id")
+  try {
+    execFileSync(process.execPath, [path.join(ROOT, "pipeline", "audit.mjs"), install, "--out", out], {
+      stdio: "pipe",
+    })
+  } catch (e) {
+    console.log(`  FAIL  identity run exited: ${e.message}`)
+    process.exit(1)
+  }
+
+  const md = await fs.readFile(`${out}.md`, "utf-8")
+  const firstLine = md.split("\n")[0]
+
+  check(
+    firstLine === "# Electron App Audit - CoolApp 1.2.3",
+    "title uses the shipped executable's name and the real version",
+  )
+  check(!firstLine.includes("app ("), "title does not leak the internal asar name")
+  check(md.includes("Windows install, resources/app"), "target line describes the artifact, not a path")
+  check(!md.includes("<project>"), "no scratch-directory placeholder in the report")
+  check(!md.includes(ROOT.replace(/\\/g, "/")) && !md.includes(ROOT), "no absolute path in the report")
+
+  await fs.rm(base, { recursive: true, force: true }).catch(() => {})
+  await fs.rm(`${out}.json`, { force: true }).catch(() => {})
+  await fs.rm(`${out}.md`, { force: true }).catch(() => {})
+}
+
+{
+  // A minimal but structurally real .app: a launcher stub, an Electron Framework
+  // binary carrying a genuine fuse wire, and an app.asar.
+  const base = path.join(ROOT, "targets", "_selftest-mac")
+  await fs.rm(base, { recursive: true, force: true })
+
+  const srcDir = path.join(base, "src")
+  await fs.mkdir(srcDir, { recursive: true })
+  await fs.writeFile(
+    path.join(srcDir, "package.json"),
+    JSON.stringify({ name: "macapp", version: "9.9.9" }, null, 2),
+    "utf-8",
+  )
+  await fs.writeFile(path.join(srcDir, "main.js"), "console.log(1)\n", "utf-8")
+
+  const app = path.join(base, "MacApp.app")
+  const resources = path.join(app, "Contents", "Resources")
+  const fw = path.join(app, "Contents", "Frameworks", "Electron Framework.framework", "Versions", "A")
+  await fs.mkdir(resources, { recursive: true })
+  await fs.mkdir(fw, { recursive: true })
+  await fs.mkdir(path.join(app, "Contents", "MacOS"), { recursive: true })
+
+  const asar = await import("@electron/asar")
+  await asar.createPackage(srcDir, path.join(resources, "app.asar"))
+
+  // The launcher stub must stay small: the fuse wire is NOT here on macOS.
+  await fs.writeFile(path.join(app, "Contents", "MacOS", "MacApp"), Buffer.alloc(128, 0))
+
+  // Wire: sentinel | version | length | one ASCII state byte per fuse.
+  // run_as_node on, everything else off.
+  const wire = Buffer.concat([
+    Buffer.from("dL7pKGdnNz796PbbjQWNKmHXBZaB9tsX", "utf-8"),
+    Buffer.from([1, 9]),
+    Buffer.from("100000000", "ascii"),
+    Buffer.alloc(512, 0),
+  ])
+  await fs.writeFile(path.join(fw, "Electron Framework"), wire)
+
+  const out = path.join(ROOT, "reports", "_selftest-mac")
+  try {
+    execFileSync(process.execPath, [path.join(ROOT, "pipeline", "audit.mjs"), app, "--out", out], {
+      stdio: "pipe",
+    })
+  } catch (e) {
+    console.log(`  FAIL  mac run exited: ${e.message}`)
+    process.exit(1)
+  }
+
+  const md = await fs.readFile(`${out}.md`, "utf-8")
+  check(md.split("\n")[0] === "# Electron App Audit - MacApp 9.9.9", "macOS bundle name is used in the title")
+  check(md.includes("macOS install, Contents/Resources/app.asar"), "macOS asar is located under Contents/")
+  check(md.includes("`run_as_node` | **enabled (risk)**"), "fuses are read from the framework binary")
+  check(!md.includes("no fuse sentinel"), "does not claim the bundle has no fuse wire")
+  check(!md.includes("StashBase"), "never borrows another app's installer name")
+
+  await fs.rm(base, { recursive: true, force: true }).catch(() => {})
+  await fs.rm(`${out}.json`, { force: true }).catch(() => {})
+  await fs.rm(`${out}.md`, { force: true }).catch(() => {})
+}
+
 console.log(`\n${pass} passed, ${fail} failed\n`)
 process.exit(fail ? 1 : 0)

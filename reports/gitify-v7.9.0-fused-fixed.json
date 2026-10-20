@@ -1,17 +1,19 @@
 {
   "meta": {
-    "label": "app (Gitify-app-flipped)",
-    "root": "<project>\\targets\\app-1e76ab71-unpacked",
-    "generatedAt": "2026-10-14T18:09:28.299Z",
+    "label": "Gitify 7.9.0",
+    "target": "Windows install, resources/app.asar",
+    "generatedAt": "2026-10-20T03:44:04.925Z",
     "filesScanned": 429,
     "filesSkippedLarge": 0,
     "totals": {
       "findings": 0,
       "urls": 19,
       "telemetry": 1,
-      "sourceMaps": 53,
-      "devBundles": 22,
-      "autoUpdater": true
+      "sourceMaps": 106,
+      "devBundles": 44,
+      "autoUpdater": true,
+      "testFilesSkipped": 0,
+      "libraryFindings": 0
     },
     "bySeverity": {}
   },
@@ -177,57 +179,65 @@
     "Hotjar"
   ],
   "sourceMaps": {
-    "count": 53,
-    "totalBytes": 1121513,
+    "count": 106,
+    "totalBytes": 2243026,
     "sample": [
       {
         "file": "node_modules/builder-util-runtime/out/blockMapApi.js.map",
         "size": 403
       },
       {
-        "file": "node_modules/builder-util-runtime/out/index.js.map",
-        "size": 2599
-      },
-      {
-        "file": "node_modules/builder-util-runtime/out/error.js.map",
-        "size": 454
+        "file": "node_modules/builder-util-runtime/out/blockMapApi.js.map",
+        "size": 403
       },
       {
         "file": "node_modules/builder-util-runtime/out/CancellationToken.js.map",
         "size": 5648
       },
       {
-        "file": "node_modules/builder-util-runtime/out/httpExecutor.js.map",
-        "size": 42807
+        "file": "node_modules/builder-util-runtime/out/CancellationToken.js.map",
+        "size": 5648
+      },
+      {
+        "file": "node_modules/builder-util-runtime/out/error.js.map",
+        "size": 454
+      },
+      {
+        "file": "node_modules/builder-util-runtime/out/error.js.map",
+        "size": 454
       },
       {
         "file": "node_modules/builder-util-runtime/out/MemoLazy.js.map",
         "size": 2756
       },
       {
-        "file": "node_modules/builder-util-runtime/out/objects.js.map",
-        "size": 6280
+        "file": "node_modules/builder-util-runtime/out/MemoLazy.js.map",
+        "size": 2756
       },
       {
-        "file": "node_modules/builder-util-runtime/out/ProgressCallbackTransform.js.map",
-        "size": 3693
+        "file": "node_modules/builder-util-runtime/out/index.js.map",
+        "size": 2599
       },
       {
-        "file": "node_modules/builder-util-runtime/out/publishOptions.js.map",
-        "size": 17843
-      },
-      {
-        "file": "node_modules/builder-util-runtime/out/rfc2253Parser.js.map",
-        "size": 4168
+        "file": "node_modules/builder-util-runtime/out/index.js.map",
+        "size": 2599
       }
     ]
   },
   "devBundles": {
-    "count": 22,
+    "count": 44,
     "sample": [
       {
         "file": "node_modules/react/cjs/react-compiler-runtime.development.js",
         "size": 1090
+      },
+      {
+        "file": "node_modules/react/cjs/react-compiler-runtime.development.js",
+        "size": 1090
+      },
+      {
+        "file": "node_modules/react/cjs/react-jsx-dev-runtime.development.js",
+        "size": 12420
       },
       {
         "file": "node_modules/react/cjs/react-jsx-dev-runtime.development.js",
@@ -238,6 +248,14 @@
         "size": 14009
       },
       {
+        "file": "node_modules/react/cjs/react-jsx-dev-runtime.react-server.development.js",
+        "size": 14009
+      },
+      {
+        "file": "node_modules/react/cjs/react-jsx-runtime.development.js",
+        "size": 13032
+      },
+      {
         "file": "node_modules/react/cjs/react-jsx-runtime.development.js",
         "size": 13032
       },
@@ -246,24 +264,8 @@
         "size": 14005
       },
       {
-        "file": "node_modules/react/cjs/react.development.js",
-        "size": 49165
-      },
-      {
-        "file": "node_modules/react/cjs/react.react-server.development.js",
-        "size": 31610
-      },
-      {
-        "file": "node_modules/react-dom/cjs/react-dom-server-legacy.browser.development.js",
-        "size": 421786
-      },
-      {
-        "file": "node_modules/react-dom/cjs/react-dom-server.browser.development.js",
-        "size": 451470
-      },
-      {
-        "file": "node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js",
-        "size": 421783
+        "file": "node_modules/react/cjs/react-jsx-runtime.react-server.development.js",
+        "size": 14005
       }
     ]
   }

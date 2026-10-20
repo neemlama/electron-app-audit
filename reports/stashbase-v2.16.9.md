@@ -1,7 +1,7 @@
-# Electron App Audit - app (StashBase-app)
+# Electron App Audit - StashBase 2.16.9
 
-- **Target:** `<project>\targets\app-b8d22533-unpacked`
-- **Generated:** 2026-10-17T16:10:18.631Z
+- **Target:** Windows install, resources/app.asar
+- **Generated:** 2026-10-20T03:44:02.239Z
 - **Files scanned:** 3883 (1 over 8 MB skipped)
 - **Credential findings:** 1 (1 medium)
 
@@ -105,7 +105,7 @@ Documentation and comment URLs are filtered out. What remains are hosts referenc
 | www.w3.org | 104 | `dist/renderer/assets/createLucideIcon-DAIWz0zR.js` |
 | example.com | 53 | `dist/renderer/assets/pdf-BK0fN3ss.js` |
 | schemas.openxmlformats.org | 48 | `dist/renderer/assets/docx-preview.worker-C_AShDd6.js` |
-| localhost | 47 | `dist/server/index.mjs` |
+| localhost | 47 | `node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs` |
 | purl.oclc.org | 20 | `dist/renderer/assets/docx-preview.worker-C_AShDd6.js` |
 | raw.githubusercontent.com | 17 | `dist/mcp/server.mjs` |
 | platform.claude.com | 17 | `node_modules/@anthropic-ai/claude-agent-sdk/browser-sdk.js` |
@@ -127,7 +127,7 @@ Documentation and comment URLs are filtered out. What remains are hosts referenc
 | localhost'); | 4 | `node_modules/@modelcontextprotocol/sdk/dist/cjs/examples/client/elicitationUrlExample.js` |
 | tjholowaychuk.com) | 4 | `node_modules/bytes/package.json` |
 | google.com | 4 | `node_modules/zod/src/v3/tests/string.test.ts` |
-| claude.ai | 3 | `dist/server/index.mjs` |
+| claude.ai | 3 | `node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs` |
 | sindresorhus.com | 3 | `node_modules/decompress-response/package.json` |
 | jongleberry.com) | 3 | `node_modules/express/node_modules/raw-body/package.json` |
 | substack.net | 3 | `node_modules/github-from-package/package.json` |

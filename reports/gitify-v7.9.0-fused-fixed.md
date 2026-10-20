@@ -1,7 +1,7 @@
-# Electron App Audit - app (Gitify-app-flipped)
+# Electron App Audit - Gitify 7.9.0
 
-- **Target:** `<project>\targets\app-1e76ab71-unpacked`
-- **Generated:** 2026-10-14T18:09:28.299Z
+- **Target:** Windows install, resources/app.asar
+- **Generated:** 2026-10-20T03:44:04.925Z
 - **Files scanned:** 429
 - **Credential findings:** 0
 
@@ -17,11 +17,13 @@ Findings carry a confidence level:
 
 Secret values are redacted. We report location, shape and classification, never a usable credential.
 
+Test files (0) are excluded from credential scanning: they ship fake credentials on purpose to test their own suites. Findings inside third-party libraries are marked and are more likely to belong to the library's author than to the app being audited.
+
 ## Executive summary
 
 - No critical or high severity credential-shaped values were found in the scanned bundle.
-- 53 source map file(s) ship in the build (1.1 MB), which lets anyone reconstruct near-original source.
-- 22 development-mode bundle(s) ship in what should be a production build.
+- 106 source map file(s) ship in the build (2.1 MB), which lets anyone reconstruct near-original source.
+- 44 development-mode bundle(s) ship in what should be a production build.
 - Telemetry/analytics SDKs present: Hotjar.
 
 Read **Coverage and limits** before treating a clean credential result as a clean bill of health.
@@ -31,35 +33,35 @@ Read **Coverage and limits** before treating a clean credential result as a clea
 _None._
 ## Build and hardening observations
 
-### Source maps shipped in the build (53 files, 1.1 MB)
+### Source maps shipped in the build (106 files, 2.1 MB)
 
 Source maps let anyone reconstruct near-original source from the shipped binary. This is not a secret leak, but it removes obfuscation as a defence and makes every other finding easier to exploit.
 
 - `node_modules/builder-util-runtime/out/blockMapApi.js.map` (0 KB)
-- `node_modules/builder-util-runtime/out/index.js.map` (3 KB)
-- `node_modules/builder-util-runtime/out/error.js.map` (0 KB)
+- `node_modules/builder-util-runtime/out/blockMapApi.js.map` (0 KB)
 - `node_modules/builder-util-runtime/out/CancellationToken.js.map` (6 KB)
-- `node_modules/builder-util-runtime/out/httpExecutor.js.map` (42 KB)
+- `node_modules/builder-util-runtime/out/CancellationToken.js.map` (6 KB)
+- `node_modules/builder-util-runtime/out/error.js.map` (0 KB)
+- `node_modules/builder-util-runtime/out/error.js.map` (0 KB)
 - `node_modules/builder-util-runtime/out/MemoLazy.js.map` (3 KB)
-- `node_modules/builder-util-runtime/out/objects.js.map` (6 KB)
-- `node_modules/builder-util-runtime/out/ProgressCallbackTransform.js.map` (4 KB)
-- `node_modules/builder-util-runtime/out/publishOptions.js.map` (17 KB)
-- `node_modules/builder-util-runtime/out/rfc2253Parser.js.map` (4 KB)
+- `node_modules/builder-util-runtime/out/MemoLazy.js.map` (3 KB)
+- `node_modules/builder-util-runtime/out/index.js.map` (3 KB)
+- `node_modules/builder-util-runtime/out/index.js.map` (3 KB)
 
-### Development bundles in a production build (22)
+### Development bundles in a production build (44)
 
 These ship React/framework development builds. They are larger, contain verbose warnings and error text, and can include code paths that production builds omit.
 
 - `node_modules/react/cjs/react-compiler-runtime.development.js` (1 KB)
+- `node_modules/react/cjs/react-compiler-runtime.development.js` (1 KB)
+- `node_modules/react/cjs/react-jsx-dev-runtime.development.js` (12 KB)
 - `node_modules/react/cjs/react-jsx-dev-runtime.development.js` (12 KB)
 - `node_modules/react/cjs/react-jsx-dev-runtime.react-server.development.js` (14 KB)
+- `node_modules/react/cjs/react-jsx-dev-runtime.react-server.development.js` (14 KB)
+- `node_modules/react/cjs/react-jsx-runtime.development.js` (13 KB)
 - `node_modules/react/cjs/react-jsx-runtime.development.js` (13 KB)
 - `node_modules/react/cjs/react-jsx-runtime.react-server.development.js` (14 KB)
-- `node_modules/react/cjs/react.development.js` (48 KB)
-- `node_modules/react/cjs/react.react-server.development.js` (31 KB)
-- `node_modules/react-dom/cjs/react-dom-server-legacy.browser.development.js` (412 KB)
-- `node_modules/react-dom/cjs/react-dom-server.browser.development.js` (441 KB)
-- `node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js` (412 KB)
+- `node_modules/react/cjs/react-jsx-runtime.react-server.development.js` (14 KB)
 
 ### Auto-updater present
 

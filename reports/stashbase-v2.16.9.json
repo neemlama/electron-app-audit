@@ -1,8 +1,8 @@
 {
   "meta": {
-    "label": "app (StashBase-app)",
-    "root": "<project>\\targets\\app-b8d22533-unpacked",
-    "generatedAt": "2026-10-17T16:10:18.631Z",
+    "label": "StashBase 2.16.9",
+    "target": "Windows install, resources/app.asar",
+    "generatedAt": "2026-10-20T03:44:02.239Z",
     "filesScanned": 3883,
     "filesSkippedLarge": 1,
     "totals": {
@@ -210,7 +210,7 @@
     {
       "host": "localhost",
       "count": 47,
-      "firstSeen": "dist/server/index.mjs"
+      "firstSeen": "node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs"
     },
     {
       "host": "purl.oclc.org",
@@ -320,7 +320,7 @@
     {
       "host": "claude.ai",
       "count": 3,
-      "firstSeen": "dist/server/index.mjs"
+      "firstSeen": "node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs"
     },
     {
       "host": "sindresorhus.com",
