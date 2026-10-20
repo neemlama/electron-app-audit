@@ -208,6 +208,31 @@ After three five-star reviews, move Standard to $175 and Premium to $350. Do not
 raise it on a new prospect at the same time - raise it, then let the next
 prospect see the new number.
 
+**Do not change anything before the gig is live.** Three reasons, because
+panic-retuning a listing destroys the signal you are about to buy:
+
+- **$75 and $125 are already the launch discount.** `offer.md` sets the first
+  2-3 jobs at $75-125 to buy reviews rather than margin. These are those numbers.
+  The cut has already happened.
+- **The price filter reads the Basic price.** Fiverr displays and filters on
+  "From $75", not on $250. Standard and Premium therefore do not remove you from
+  a $50-100 search, and Premium is doing its real job as an anchor that makes
+  $125 look reasonable.
+- **There is no data yet.** Changing a price before the first impression is
+  guessing with extra steps.
+
+**When to act, and on what.** After two weeks live, read impressions and clicks
+separately in Seller Dashboard:
+
+| Signal | Diagnosis | Action |
+| --- | --- | --- |
+| Impressions, no clicks | Thumbnail or title is not landing | Change image 1 first. Price third. |
+| Clicks, no orders | The offer is not worth $75 to this buyer | Test Basic at $55 for two weeks. |
+| No impressions | You are not ranking | Do not touch price. Work Upwork. |
+
+Do not add gig extras yet. Extras add pricing surface for a buyer who is still
+deciding whether to trust a stranger.
+
 ### Description (1200 character limit)
 
 Measured at 1161 characters. Long lines on purpose: Fiverr counts line breaks,
