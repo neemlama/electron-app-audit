@@ -61,6 +61,11 @@ I will audit your Electron app for leaked API keys and missing hardening
 
 72 characters. The "I will" prefix is mandatory on Fiverr.
 
+Keep "audit" in the title even though the category is Code Review. "Audit" is
+what a buyer with a security worry types; the category and the tag list already
+supply the word "review". Do not spend title space on a word the category hands
+you for free.
+
 Alternate, if you want the word "security" up front:
 
 ```
@@ -69,58 +74,63 @@ I will security audit your Electron desktop app and harden the build
 
 ### Category
 
+**Confirmed on the live account: Cybersecurity & Data Protection is Fiverr Pro
+(vetted) only and cannot be selected.** That changes the answer, and it changes
+which channel is primary.
+
 **Use this path:**
 
 ```
-Programming & Tech > Cybersecurity & Data Protection > Assessment & Penetration Test
+Programming & Tech > QA & Review > Code Review
 ```
 
-The four subcategories inside Cybersecurity are: Assessment & Penetration Test,
-Compliance Services, Consultation, Cybersecurity Management. Only the first one
-is a bucket for assessment work.
+**What is selectable, and why the rest lose:**
 
-When the gig builder asks for service type or metadata, prefer anything labelled
-`Security Audit`, `Risk Assessment`, `Vulnerability Assessment` or
-`Application Security` over plain `Penetration Testing`.
-
-**Why this category and not the two obvious alternatives:**
-
-| Path | Gigs | Problem |
+| Option | Subcategories | Verdict |
 | --- | --- | --- |
-| Cybersecurity > Assessment & Penetration Test | 220 | None material. Buyers here filter by "Audit" and "Risk assessment". |
-| Software Development > Desktop Applications | 6,200+ | Every gig says "I will build your app". You would be invisible and off-intent. |
-| QA & Review > Code Review | 4,900+ in parent | Price floor is $15-40. At $125 you are the most expensive gig on the page, with zero reviews. |
+| QA & Review | Software Testing, Code Review, Design Review | **Code Review.** The only bucket whose buyer already has software and wants a report on it. |
+| Support & IT | Technical Support, Server Administration, Email Management, VoIP, Software Installation, Platform Migrations, CCTV | Operational IT. No security bucket exists. Wrong buyer. |
+| Software Development | Desktop Applications, Bug Fixes, Scripting, API & Integrations, Plugins, Automations | 6,200+ Desktop Application gigs, all "I will build your app". Invisible and off-intent. |
+| User Testing, Convert Files, Trading Bots, Mobile App Maintenance | - | No overlap at all. |
 
-The price argument is the deciding one. Cybersecurity assessments run $500-880
-on that page, so $125 reads as an entry-tier assessment. In Code Review you are
-competing with "$15, review my 200 lines of Java", and a new seller loses that
-comparison every time.
+**The downside, stated once:** in Code Review the common price is $15-40 and the
+visible ceiling is about $100. At $75 Basic you sit at the top of that band; at
+$125 Standard you are above it, with no reviews. That is a real headwind.
 
-**Two risks to neutralise, both already handled in the copy:**
+Do not answer it by cutting price to match. A buyer shopping at $15 was never
+going to buy a security audit at $55 either - they will buy the $15 review that
+says "your variable names are inconsistent". Price is not what separates you
+here; the claim on the first image and the first line of the description is.
 
-1. The subcategory says "Penetration Test" and you do not penetrate anything.
-   Handled by the title (says "audit"), the description ("static review only,
-   nothing is executed"), requirement question 3, and the FAQ entry below.
-2. Fiverr may review a new cybersecurity gig more slowly than a development gig.
-   Nothing to do about it; publish early.
+**The strategic point, which matters more than the category:**
 
-**Fallback:** if the gig is rejected in Cybersecurity, use
-`Programming & Tech > QA & Review > Code Review`. It is an honest fit - you do
-review code - but expect to compete on price.
+Fiverr gates security work behind Pro vetting. That is not a quirk of your
+account, it is the platform saying where it wants this service to sit. So Fiverr
+is the secondary channel now. Upwork - where you already have history, and where
+a proposal goes to the buyer instead of waiting for search traffic - is primary.
+Publish the gig because it costs nothing to leave standing, not because it will
+produce the first invoice.
 
-Do not choose Website Security, Cloud Security or Compliance Services. None of
-them describe this work, and a mismatched buyer leaves a one-star review when
-the deliverable turns out to be something else.
+**If impressions arrive and orders do not:** test Basic at $55 for two weeks.
+That is a test of the listing, not a change to the offer. Revert if it does not
+move.
+
+**If Fiverr Pro is ever offered:** create a second gig under
+Cybersecurity > Assessment & Penetration Test. Do not move this one - by then it
+will have reviews.
 
 ### Search tags (5 maximum, 20 characters each)
 
 ```
 electron
 security audit
+code review
 electron fuses
 api key leak
-desktop app
 ```
+
+"code review" replaces the earlier "desktop app" tag. It matches the category,
+and "electron" already implies desktop. The other four carry intent.
 
 ### Packages
 
