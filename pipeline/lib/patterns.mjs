@@ -7,6 +7,22 @@
 const PLACEHOLDER =
   /(?:x{4,}|y{4,}|z{4,}|a{4,}|b{4,}|\.{3,}|<[^>]{0,40}>|\$\{[^}]+\}|\{\{[^}]+\}\}|%[SDsd][A-Za-z]?\b|REPLACE_ME|CHANGEME|your[_-]?(?:key|token|secret|api)|example|placeholder|dummy|sample|redacted|insert[_-]?here|foo|bar|baz)/i
 
+/**
+ * Test files ship fake credentials ON PURPOSE so their own suites can verify
+ * detection. Reporting them is guaranteed noise: three of seven findings in the
+ * stashbase audit came from zod's fixtures.
+ *
+ * These are skipped for credential scanning. Structural checks still run.
+ */
+export const TEST_FILE =
+  /(^|\/)(tests?|__tests__|__mocks__|spec|specs|fixtures|test-fixtures|e2e)(\/|$)|(\.(test|spec)\.[cm]?[jt]sx?$)|(\.test\.[a-z]+$)/i
+
+/**
+ * Real key material has a body. A bare BEGIN header is a label - libraries check
+ * `str.indexOf('-----BEGIN PRIVATE KEY-----') !== 0` as a format test, and that
+ * string is not a private key. Requiring base64 between BEGIN and END removes
+ * that entire false-positive class.
+ */
 export const SECRET_PATTERNS = [
   // ── Cloud providers ────────────────────────────────────────────
   {
@@ -197,8 +213,11 @@ export const SECRET_PATTERNS = [
     id: "private-key-block",
     title: "Embedded Private Key",
     severity: "critical",
-    regex: /-----BEGIN\s+(RSA|DSA|EC|OPENSSH|PGP|ENCRYPTED)?\s*PRIVATE KEY(?: BLOCK)?-----/g,
-    note: "Any private key in a shipped client is a critical finding on its own.",
+    // Requires a real base64 body between BEGIN and END. A header on its own is a
+    // format check, not key material.
+    regex:
+      /-----BEGIN\s+(?:RSA|DSA|EC|OPENSSH|PGP|ENCRYPTED)?\s*PRIVATE KEY(?: BLOCK)?-----[\s\S]{0,120}?[A-Za-z0-9+/]{64,}={0,2}[\s\S]{0,120}?-----END\s+(?:RSA|DSA|EC|OPENSSH|PGP|ENCRYPTED)?\s*PRIVATE KEY(?: BLOCK)?-----/g,
+    note: "A complete key block in a shipped client is a critical finding on its own.",
     notPlaceholder: true,
   },
   {

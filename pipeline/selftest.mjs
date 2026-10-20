@@ -7,7 +7,7 @@ import * as fsSync from "node:fs"
 import * as path from "node:path"
 import { fileURLToPath } from "node:url"
 import { execFileSync } from "node:child_process"
-import { SECRET_PATTERNS, looksLikeRealSecret } from "./lib/patterns.mjs"
+import { SECRET_PATTERNS, looksLikeRealSecret, TEST_FILE, entropy } from "./lib/patterns.mjs"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, "..")
@@ -23,7 +23,7 @@ const MUST_FIND = [
   ["slack", `const slack = "xoxb-123456789012-1234567890123-AbCdEfGhIjKlMnOpQrStUvWx"`],
   ["anthropic", `const ai = "sk-ant-api03-abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghij"`],
   ["openai", `const openaiKey = "sk-proj-abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ"`],
-  ["privatekey", `-----BEGIN RSA PRIVATE KEY-----`],
+  ["privatekey", `const k = "-----BEGIN RSA PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDLtVkOJ0dRHhMz\n-----END RSA PRIVATE KEY-----"`],
   ["basicauth", `const upstream = "https://admin:hunter2secret@internal.corp/api"`],
   ["posthog", `posthog.init("phc_abcdefghijklmnopqrstuvwx", {})`],
   ["webhook", `const hook = "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"`],
@@ -38,6 +38,8 @@ const MUST_NOT_FLAG = [
   ["prose", `const description = "this is a normal english sentence here"`],
   ["url-only", `const endpoint = "https://api.example.com/v1/thing"`],
   ["public-sentry-dsn", `Sentry.init({ dsn: "https://abc123def456abc123def456@o1.ingest.sentry.io/1234" })`],
+  // jose's real line: a format check, not key material.
+  ["pem-header-only", `if (typeof pkcs8 !== 'string' || pkcs8.indexOf('-----BEGIN PRIVATE KEY-----') !== 0) {}`],
 ]
 
 let pass = 0
@@ -169,6 +171,122 @@ console.log("\n4. electron fuse wire decoding")
   await fs.rm(`${outBase2}.json`, { force: true }).catch(() => {})
   await fs.rm(`${outBase2}.md`, { force: true }).catch(() => {})
   await fs.rm(path.join(ROOT, "targets", "_selftest-fixture"), { recursive: true, force: true }).catch(() => {})
+}
+
+// -- section 5: false-positive regressions found in a real audit --------
+// Auditing stashbase v2.16.9 produced 7 credential findings, 6 of which were
+// noise: library test fixtures, a bare PEM header used as a format check, and
+// accidental matches inside minified SDK code. The synthetic fixtures in
+// sections 1-4 were too clean to surface any of it. These lock the fixes in.
+
+console.log("\n5. false-positive regressions (from a real audit)")
+
+// -- 5a. test files are excluded ---------------------------------------
+{
+  const cases = [
+    ["node_modules/zod/src/v4/mini/tests/string.test.ts", true],
+    ["node_modules/zod/src/v4/classic/tests/string.test.ts", true],
+    ["src/__tests__/auth.spec.js", true],
+    ["test/helpers/token.ts", true],
+    ["dist/server/index.mjs", false],
+    ["build/main.js", false],
+    ["node_modules/@anthropic-ai/claude-agent-sdk/assistant.mjs", false],
+    ["node_modules/jose/dist/webapi/key/import.js", false],
+  ]
+  let ok = true
+  for (const [p, want] of cases) {
+    if (TEST_FILE.test(p) !== want) {
+      console.log(`  FAIL  TEST_FILE("${p}") should be ${want}`)
+      ok = false
+    }
+  }
+  check(ok, "test file detection covers the real paths")
+}
+
+// -- 5b. a bare PEM header is not a private key ------------------------
+{
+  const pat = SECRET_PATTERNS.find((p) => p.id === "private-key-block")
+  const re = (s) => new RegExp(pat.regex.source, pat.regex.flags).test(s)
+
+  // What jose actually contains: a format check, not key material.
+  const headerOnly =
+    "if (typeof pkcs8 !== 'string' || pkcs8.indexOf('-----BEGIN PRIVATE KEY-----') !== 0)"
+  check(!re(headerOnly), "bare BEGIN header is NOT reported as a private key")
+
+  const body = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDLtVkOJ0dRHhMz"
+  const real = `-----BEGIN RSA PRIVATE KEY-----\n${body}\n-----END RSA PRIVATE KEY-----`
+  check(re(real), "full PEM block with a body IS reported")
+}
+
+// -- 5c. minified code needs a higher entropy floor ---------------------
+{
+  // In the real audit the two accidental "PayPal tokens" reported from minified
+  // SDK code measured 3.54 entropy, while the genuine PostHog token measured 4.91.
+  // The floor sits between them. These two strings test the MECHANISM: one
+  // clearly below the floor, one clearly above. They are not byte-identical to
+  // the incident, because the original value was never stored unmasked.
+  const accidental = "EAA" + "EAAAoBcmWb".repeat(8) + "AQBB"
+  check(entropy(accidental) < 4.5, "a low-entropy accidental match sits below the floor")
+
+  const realToken =
+    "EAAAoBwQrTn0ZxPq7LkJmVh4Gd9SfN2bWyCtRv6DlKmIh8GfNbWyCtRv4DlKmIh2GfNbWyCtRv9DlKmIh"
+  check(entropy(realToken) >= 4.5, "a genuine random token clears the floor")
+  check(entropy(realToken) > entropy(accidental), "the two are genuinely separated")
+}
+
+// -- 5d. the live finding must NOT be lost ------------------------------
+{
+  const pat = SECRET_PATTERNS.find((p) => p.id === "posthog-key")
+  // Synthetic on purpose. This repository will be public, so no fixture may carry
+  // any part of a token that was actually observed in an audit.
+  const line = '  projectToken: "phc_selftestfixture0000000000000000000000",'
+  check(new RegExp(pat.regex.source, pat.regex.flags).test(line), "PostHog-shaped token still detected")
+}
+
+// -- 5e. end-to-end: same JWT, test file vs app file --------------------
+// This is the actual zod situation from the stashbase audit. The identical
+// credential-shaped string is noise in a test fixture and a real finding in the
+// app's own code. The distinction is the file path, not the content.
+{
+  const JWT = 'const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4ifQ.dozjgNryP4J3jVmNHl0w5N_X9aEz3kJ7YvB2c";'
+  const PHK = 'const k = "-----BEGIN RSA PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDLtVkOJ0dRHhMz\n-----END RSA PRIVATE KEY-----";'
+
+  const root = path.join(ROOT, "targets", "_selftest-fp")
+  await fs.rm(root, { recursive: true, force: true })
+  await fs.mkdir(path.join(root, "node_modules", "zod", "tests"), { recursive: true })
+  await fs.mkdir(path.join(root, "node_modules", "some-lib"), { recursive: true })
+  await fs.mkdir(path.join(root, "dist"), { recursive: true })
+  await fs.writeFile(path.join(root, "node_modules", "zod", "tests", "string.test.ts"), `${JWT}\n${PHK}\n`, "utf-8")
+  await fs.writeFile(path.join(root, "dist", "server.mjs"), `${JWT}\n`, "utf-8")
+  // A non-test library file that genuinely contains a credential. Reported, but
+  // marked as belonging to the library's author, not to the app being audited.
+  await fs.writeFile(
+    path.join(root, "node_modules", "some-lib", "index.mjs"),
+    'export const key = "AKIAIOSFODNN7EXAMPLE";\n',
+    "utf-8",
+  )
+
+  const outBase3 = path.join(ROOT, "reports", "_selftest-fp")
+  try {
+    execFileSync(process.execPath, [path.join(ROOT, "pipeline", "audit.mjs"), root, "--out", outBase3], { stdio: "pipe" })
+  } catch (e) {
+    console.log(`  FAIL  fp run exited: ${e.message}`)
+    process.exit(1)
+  }
+  const r4 = JSON.parse(await fs.readFile(`${outBase3}.json`, "utf-8"))
+  const files = new Set(r4.findings.map((f) => f.file))
+
+  check(!files.has("node_modules/zod/tests/string.test.ts"), "test fixture produces NO findings")
+  check(files.has("dist/server.mjs"), "identical JWT in app code IS still reported")
+  check(r4.meta.totals.testFilesSkipped >= 1, "test file counted as skipped")
+  check(
+    r4.findings.some((f) => f.inLibrary),
+    "library findings are flagged as such when they do occur",
+  )
+
+  await fs.rm(root, { recursive: true, force: true }).catch(() => {})
+  await fs.rm(`${outBase3}.json`, { force: true }).catch(() => {})
+  await fs.rm(`${outBase3}.md`, { force: true }).catch(() => {})
 }
 
 console.log(`\n${pass} passed, ${fail} failed\n`)

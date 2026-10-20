@@ -19,6 +19,7 @@ import {
   SECRET_PATTERNS,
   TELEMETRY_SDKS,
   SENSITIVE_FILENAMES,
+  TEST_FILE,
   looksLikeRealSecret,
   entropy,
 } from "./lib/patterns.mjs"
@@ -118,6 +119,25 @@ function mask(v) {
 function placeholderLike(v) {
   return /^(x{4,}|a{4,}|b{4,}|\.{3,}|<[^>]*>|\$\{[^}]+\}|\{\{[^}]+\}\})/i.test(String(v))
 }
+
+/**
+ * Minified bundles pack thousands of tokens onto few long lines. Long runs of
+ * random-looking identifier characters then match credential shapes by chance -
+ * two "PayPal tokens" in the stashbase audit were exactly that.
+ *
+ * Real credentials are high-entropy random strings. Coincidental matches in
+ * jumbled code are not, so in minified files we hold matches to a higher entropy
+ * floor rather than discarding the file and losing genuine leaks.
+ */
+function isMinified(text) {
+  const lines = text.split("\n")
+  if (lines.length > 200) return false
+  const longest = lines.reduce((m, l) => Math.max(m, l.length), 0)
+  const avg = text.length / lines.length
+  return longest > 2000 || avg > 300
+}
+
+const MINIFIED_ENTROPY_FLOOR = 4.5
 
 // -- step 1: resolve target --------------------------------------------
 async function resolveTarget(input) {
@@ -248,6 +268,7 @@ async function scanFiles(files, root) {
   let autoUpdater = false
   let scanned = 0
   let skippedLarge = 0
+  let testFilesSkipped = 0
 
   await mapLimit(files, CONCURRENCY, async (file) => {
     let st
@@ -277,41 +298,59 @@ async function scanFiles(files, root) {
     if (text.indexOf("\0") >= 0 && ext !== ".map") return
     scanned++
 
+    // -- structural signals -------------------------------------------
+    if (ext === ".map") sourceMaps.push({ file: relPath, size: st.size })
+    if (/\.(development|dev)\.(js|mjs|cjs)$/i.test(base)) devBundles.push({ file: relPath, size: st.size })
+    if (/node_modules[\\/](electron-updater|auto-updater)[\\/]/.test(relPath)) autoUpdater = true
+
     // -- credentials -------------------------------------------------
-    for (const p of SECRET_PATTERNS) {
-      if (p.fileMatch && !p.fileMatch.test(relPath)) continue
-      const flags = p.regex.flags.includes("g") ? p.regex.flags : p.regex.flags + "g"
-      const re = new RegExp(p.regex.source, flags)
-      let m
-      let guard = 0
-      while ((m = re.exec(text)) !== null && guard++ < 50) {
-        const value = m[1] ?? m[0]
-        if (p.notPlaceholder && value.length > 200) continue
+    // Test files ship fake credentials deliberately. Skipping them is not a
+    // trade-off: reporting them guarantees noise.
+    const isTestFile = TEST_FILE.test(relPath)
+    if (isTestFile) testFilesSkipped++
+    const minified = !isTestFile && isMinified(text)
 
-        if (p.context) {
-          const window = text.slice(Math.max(0, m.index - 300), m.index + m[0].length + 300)
-          if (!p.context.test(window)) continue
+    if (!isTestFile) {
+      for (const p of SECRET_PATTERNS) {
+        if (p.fileMatch && !p.fileMatch.test(relPath)) continue
+        const flags = p.regex.flags.includes("g") ? p.regex.flags : p.regex.flags + "g"
+        const re = new RegExp(p.regex.source, flags)
+        let m
+        let guard = 0
+        while ((m = re.exec(text)) !== null && guard++ < 50) {
+          const value = m[1] ?? m[0]
+          if (p.notPlaceholder && value.length > 4000) continue
+
+          if (p.context) {
+            const window = text.slice(Math.max(0, m.index - 300), m.index + m[0].length + 300)
+            if (!p.context.test(window)) continue
+          }
+
+          const ent = entropy(String(value))
+          // Minified code produces low-entropy accidental matches. Real tokens do not.
+          if (minified && ent < MINIFIED_ENTROPY_FLOOR) continue
+
+          let confidence = "needs-verification"
+          if (p.informational) confidence = "informational"
+          else if (!p.needsEntropyCheck && !placeholderLike(value)) confidence = "likely-valid"
+          else if (p.needsEntropyCheck && !looksLikeRealSecret(value)) continue
+
+          findings.push({
+            ruleId: p.id,
+            title: p.title,
+            severity: p.severity,
+            confidence,
+            file: relPath,
+            line: text.slice(0, m.index).split("\n").length,
+            preview: mask(value),
+            valueLength: value.length,
+            entropy: Number(ent.toFixed(2)),
+            inLibrary: relPath.startsWith("node_modules/"),
+            note: p.note,
+            informational: !!p.informational,
+          })
+          if (m.index === re.lastIndex) re.lastIndex++
         }
-
-        let confidence = "needs-verification"
-        if (p.informational) confidence = "informational"
-        else if (!p.needsEntropyCheck && !placeholderLike(value)) confidence = "likely-valid"
-        else if (p.needsEntropyCheck && !looksLikeRealSecret(value)) continue
-
-        findings.push({
-          ruleId: p.id,
-          title: p.title,
-          severity: p.severity,
-          confidence,
-          file: relPath,
-          line: text.slice(0, m.index).split("\n").length,
-          preview: mask(value),
-          valueLength: value.length,
-          entropy: Number(entropy(String(value)).toFixed(2)),
-          note: p.note,
-          informational: !!p.informational,
-        })
-        if (m.index === re.lastIndex) re.lastIndex++
       }
     }
 
@@ -338,7 +377,7 @@ async function scanFiles(files, root) {
     }
   })
 
-  return { findings, urls, telemetry: [...telemetry], sourceMaps, devBundles, autoUpdater, scanned, skippedLarge }
+  return { findings, urls, telemetry: [...telemetry], sourceMaps, devBundles, autoUpdater, scanned, skippedLarge, testFilesSkipped }
 }
 
 // -- step 4: sensitive files -------------------------------------------
@@ -386,6 +425,8 @@ function buildReport(meta, scan, sensitive, fuses) {
         sourceMaps: scan.sourceMaps.length,
         devBundles: scan.devBundles.length,
         autoUpdater: scan.autoUpdater,
+        testFilesSkipped: scan.testFilesSkipped,
+        libraryFindings: findings.filter((f) => f.inLibrary).length,
       },
       bySeverity,
     },
@@ -421,6 +462,10 @@ function renderMarkdown(r) {
   L.push("| `informational` | Present by design. Listed for inventory, not as a defect. |")
   L.push("")
   L.push("Secret values are redacted. We report location, shape and classification, never a usable credential.")
+  L.push("")
+  L.push(
+    `Test files (${r.meta.totals.testFilesSkipped}) are excluded from credential scanning: they ship fake credentials on purpose to test their own suites. Findings inside third-party libraries are marked and are more likely to belong to the library's author than to the app being audited.`,
+  )
   L.push("")
 
   L.push("## Executive summary", "")
