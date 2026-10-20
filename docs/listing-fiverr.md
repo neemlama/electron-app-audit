@@ -230,8 +230,54 @@ separately in Seller Dashboard:
 | Clicks, no orders | The offer is not worth $75 to this buyer | Test Basic at $55 for two weeks. |
 | No impressions | You are not ranking | Do not touch price. Work Upwork. |
 
-Do not add gig extras yet. Extras add pricing surface for a buyer who is still
-deciding whether to trust a stranger.
+**Extras: add exactly one.** Set `Extra fast delivery` to +$40 for a 24-hour
+turnaround. It monetises a deadline without inventing new scope. Leave the rest
+off: extra sessions, extra reports and extra minutes each ask the buyer to design
+the product for you, which is the opposite of what a fixed offer is for.
+
+### Scope & Pricing screen
+
+The fields offered are Code Review-specific: a session plus a review report. Your
+product is the report, so the session fields are the only ones needing care.
+
+**Package descriptions.** Paste the short version. It is measured at 74, 74 and
+65 characters, so it fits the field whatever its limit turns out to be.
+
+| Package | Paste this |
+| --- | --- |
+| Basic | `Fuse states and build hygiene on your shipped build. Short written report.` |
+| Standard | `Full audit: fuses, credentials, build hygiene, endpoints. 4-8 page report.` |
+| Premium | `Full audit plus a 60-minute walkthrough call with your developer.` |
+
+Longer alternates, only if the box visibly accepts about 130 characters:
+
+```
+Basic:    Fuse states and build hygiene on your shipped build. Short report on which hardening switches are off and what each permits.
+Standard: All five sections: fuses, build hygiene, credential sweep, endpoint inventory, coverage limits. Confidence-graded, secrets masked.
+Premium:  Full audit plus a 60-minute call walking your developer through each fix. Recorded, with annotated screenshots of every finding.
+```
+
+**Element toggles:**
+
+| Element | Basic | Standard | Premium |
+| --- | --- | --- | --- |
+| Session length (mins) | leave empty / off | leave empty / off | 60 |
+| Number of sessions | off | off | 1 |
+| Session recording | off | off | on |
+| Annotated screen shots | off | on | on |
+| Review report | on | on | on |
+
+The logic: the report is the product in all three tiers. A call is the upgrade,
+so it exists only in Premium. If the form refuses to leave the session fields
+empty, set sessions to 0 rather than giving Basic a call - a free 30-minute call
+in Basic removes the only reason to buy Premium.
+
+**Annotated screenshots** means the fuse table excerpt, the source-map listing
+and the endpoint inventory, annotated. Anything carrying a credential value must
+be masked in the image itself, not in a caption underneath it.
+
+**Delivery times and revisions** are set elsewhere on this screen: 2/3/4 days
+and 1/2/2 revisions.
 
 ### Description (1200 character limit)
 
