@@ -69,14 +69,48 @@ I will security audit your Electron desktop app and harden the build
 
 ### Category
 
-Prefer a security subcategory if your region offers one:
-`Programming & Tech > Cybersecurity & Data Protection`
+**Use this path:**
 
-Otherwise the closest honest fit:
-`Programming & Tech > Software Development > Desktop Applications`
+```
+Programming & Tech > Cybersecurity & Data Protection > Assessment & Penetration Test
+```
 
-Do not choose "Website Security". The service is not about websites, and
-mismatched categories produce mismatched buyers.
+The four subcategories inside Cybersecurity are: Assessment & Penetration Test,
+Compliance Services, Consultation, Cybersecurity Management. Only the first one
+is a bucket for assessment work.
+
+When the gig builder asks for service type or metadata, prefer anything labelled
+`Security Audit`, `Risk Assessment`, `Vulnerability Assessment` or
+`Application Security` over plain `Penetration Testing`.
+
+**Why this category and not the two obvious alternatives:**
+
+| Path | Gigs | Problem |
+| --- | --- | --- |
+| Cybersecurity > Assessment & Penetration Test | 220 | None material. Buyers here filter by "Audit" and "Risk assessment". |
+| Software Development > Desktop Applications | 6,200+ | Every gig says "I will build your app". You would be invisible and off-intent. |
+| QA & Review > Code Review | 4,900+ in parent | Price floor is $15-40. At $125 you are the most expensive gig on the page, with zero reviews. |
+
+The price argument is the deciding one. Cybersecurity assessments run $500-880
+on that page, so $125 reads as an entry-tier assessment. In Code Review you are
+competing with "$15, review my 200 lines of Java", and a new seller loses that
+comparison every time.
+
+**Two risks to neutralise, both already handled in the copy:**
+
+1. The subcategory says "Penetration Test" and you do not penetrate anything.
+   Handled by the title (says "audit"), the description ("static review only,
+   nothing is executed"), requirement question 3, and the FAQ entry below.
+2. Fiverr may review a new cybersecurity gig more slowly than a development gig.
+   Nothing to do about it; publish early.
+
+**Fallback:** if the gig is rejected in Cybersecurity, use
+`Programming & Tech > QA & Review > Code Review`. It is an honest fit - you do
+review code - but expect to compete on price.
+
+Do not choose Website Security, Cloud Security or Compliance Services. None of
+them describe this work, and a mismatched buyer leaves a one-star review when
+the deliverable turns out to be something else.
 
 ### Search tags (5 maximum, 20 characters each)
 
@@ -161,6 +195,13 @@ why the fuse and build checks are the main deliverable, not the credential sweep
 **Do you run the application?**
 No. Static analysis of the shipped files only. Nothing is launched and no
 credential is tested against a live service.
+
+**Is this a penetration test?**
+No, and do not buy it expecting one. A penetration test attacks a running system
+to prove what is exploitable. This is a static review of the build: it says which
+hardening switches are off, what that permits, and what shipped in the package.
+If you need exploitation and a proof-of-concept, you need a pentest from someone
+else and I will say so before you order.
 
 **What if you find nothing?**
 You still receive the report, documenting what was checked and what was out of
